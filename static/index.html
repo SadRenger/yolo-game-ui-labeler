@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="projects-page">
+    <!-- DEBUG: 纯HTML标记，确认页面版本 -->
+    <div style="position:fixed;top:0;right:0;background:red;color:white;padding:4px 8px;font:bold 14px monospace;z-index:99999;">TAURI-v2</div>
     <div class="projects-container">
         <header class="projects-header">
             <h1>YOLO Game UI Labeler</h1>
@@ -49,32 +51,6 @@
         </div>
     </div>
 
-    <!-- 调试: 显示 Tauri API 可用性 -->
-    <div id="debugInfo" style="position:fixed;top:0;right:0;background:#111;color:#0f0;
-        font:11px monospace;padding:8px;z-index:9999;max-width:400px;opacity:0.85;
-        white-space:pre-wrap;"></div>
-    <script>
-    (function(){
-        var d=document.getElementById('debugInfo');
-        var lines=[];
-        try{
-            lines.push('__TAURI__: '+(typeof window.__TAURI__));
-            if(window.__TAURI__){
-                lines.push('  .invoke: '+(typeof window.__TAURI__.invoke));
-                lines.push('  .core: '+(typeof window.__TAURI__.core));
-                if(window.__TAURI__.core) lines.push('  .core.invoke: '+(typeof window.__TAURI__.core.invoke));
-                lines.push('  keys: '+Object.keys(window.__TAURI__).join(','));
-            }
-            lines.push('__TAURI_INTERNALS__: '+(typeof window.__TAURI_INTERNALS__));
-            if(window.__TAURI_INTERNALS__){
-                lines.push('  .invoke: '+(typeof window.__TAURI_INTERNALS__.invoke));
-                lines.push('  keys: '+Object.keys(window.__TAURI_INTERNALS__).join(','));
-            }
-            lines.push('location: '+window.location.href);
-        }catch(e){ lines.push('ERR: '+e.message); }
-        d.textContent=lines.join('\n');
-    })();
-    </script>
     <script src="js/api.js"></script>
     <script src="js/projects.js"></script>
 </body>
