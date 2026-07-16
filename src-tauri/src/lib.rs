@@ -1,6 +1,5 @@
 use std::process::{Child, Command};
 use std::sync::Mutex;
-use serde_json::Value;
 use tauri::Manager;
 
 struct DjangoProcess(Mutex<Option<Child>>);
@@ -74,7 +73,12 @@ fn pick_json_file() -> Result<String, String> {
 }
 
 #[tauri::command]
-fn api_request(method: String, path: String, body: Option<String>) -> Result<Value, String> {
+fn ping() -> String {
+    "pong".to_string()
+}
+
+#[tauri::command]
+fn api_request(method: String, path: String, body: Option<String>) -> Result<String, String> {
     let url = format!("http://127.0.0.1:{}{}", DJANGO_PORT, path);
     let client = reqwest::blocking::Client::new();
     let mut builder = match method.as_str() {
@@ -87,10 +91,9 @@ fn api_request(method: String, path: String, body: Option<String>) -> Result<Val
     if let Some(ref b) = body {
         builder = builder.body(b.clone());
     }
-    let response = builder.send().map_err(|e| e.to_string())?;
-    let text = response.text().map_err(|e| e.to_string())?;
-    let json: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
-    Ok(json)
+    let response = builder.send().map_err(|e| format!("Django 连接失败: {}", e))?;
+    let text = response.text().map_err(|e| format!("读取响应失败: {}", e))?;
+    Ok(text)
 }
 
 pub fn run() {
@@ -101,7 +104,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(django)
-        .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file, api_request])
+        .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file, api_request, ping])
         .setup(move |app| {
             // 单实例锁：尝试绑定固定本地端口
             use std::net::TcpListener;

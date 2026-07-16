@@ -26,7 +26,8 @@ const API = {
             // Tauri 模式: IPC 代理 → Rust → Django（绕过跨域）
             try {
                 const bodyStr = body ? JSON.stringify(body) : null;
-                const data = await invoke('api_request', { method, path: url, body: bodyStr });
+                const text = await invoke('api_request', { method, path: url, body: bodyStr });
+                const data = JSON.parse(text);
                 if (data && data.error) throw new Error(data.error);
                 return data;
             } catch (e) {
