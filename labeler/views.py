@@ -91,21 +91,30 @@ def project_list(request):
         else:
             _create_default_classes(project_dir)
 
-        # 生成缩略图
+        # 复制图片到项目目录 + 生成缩略图
+        images_dir = project_dir / 'images'
         thumb_dir = project_dir / '.thumbnails'
         for img_name in images:
             src = img_dir / img_name
+            dst = images_dir / img_name
+            try:
+                shutil.copy2(str(src), str(dst))
+            except Exception:
+                pass  # 单张复制失败不影响项目创建
             thumb = thumb_dir / f"{img_name}.thumb.jpg"
             try:
                 utils.generate_thumbnail(str(src), str(thumb))
             except Exception:
-                pass  # 缩略图生成失败不影响项目创建
+                pass
+
+        # 重新扫描项目目录（以实际复制成功的图片为准）
+        actual_images = utils.scan_images(images_dir)
 
         # 记录到注册表
         registry[project_id] = {
             'name': name,
-            'image_directory': str(img_dir.absolute()),
-            'image_count': len(images),
+            'image_directory': str(images_dir.absolute()),
+            'image_count': len(actual_images),
             'annotated_count': 0,
             'created_at': datetime.now().isoformat(),
             'last_opened': datetime.now().isoformat(),
@@ -116,7 +125,7 @@ def project_list(request):
         return _json_response({
             'id': project_id,
             'name': name,
-            'image_count': len(images),
+            'image_count': len(actual_images),
             'created_at': registry[project_id]['created_at'],
         }, status=201)
 
