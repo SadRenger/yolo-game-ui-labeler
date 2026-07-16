@@ -155,13 +155,14 @@ def atomic_write(path, write_func):
     os.replace(tmp_path, path)  # 原子替换，跨平台支持
 
 
-def verify_project_integrity(project_dir):
+def verify_project_integrity(project_dir, labels_dir=None):
     """扫描 labels/ 与 .meta/ 的一致性，返回警告列表。
 
     Returns: [{'file': str, 'issue': str, 'severity': 'warning'|'error'}, ...]
     """
     warnings = []
-    labels_dir = project_dir / 'labels'
+    if labels_dir is None:
+        labels_dir = project_dir / 'labels'
     meta_dir = project_dir / '.meta'
 
     if not labels_dir.exists():

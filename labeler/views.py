@@ -24,6 +24,14 @@ def _parse_body(request):
         return {}
 
 
+def _get_labels_dir(project_id):
+    """获取项目的标注存放目录"""
+    registry = utils.load_project_registry()
+    if project_id in registry and 'labels_directory' in registry[project_id]:
+        return Path(registry[project_id]['labels_directory'])
+    return utils.PROJECTS_ROOT / project_id / 'labels'
+
+
 def _create_default_classes(project_dir):
     """创建默认空类别配置。"""
     default = {'classes': []}
@@ -57,6 +65,7 @@ def project_list(request):
         body = _parse_body(request)
         name = body.get('name', '').strip()
         image_directory = body.get('image_directory', '').strip()
+        labels_directory = body.get('labels_directory', '').strip()
         class_config = body.get('class_config', '').strip()
 
         # 校验项目名称
@@ -110,10 +119,18 @@ def project_list(request):
         # 重新扫描项目目录（以实际复制成功的图片为准）
         actual_images = utils.scan_images(images_dir)
 
+        # 确定标注目录
+        if labels_directory:
+            labels_dir = Path(labels_directory)
+            labels_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            labels_dir = project_dir / 'labels'
+
         # 记录到注册表
         registry[project_id] = {
             'name': name,
             'image_directory': str(images_dir.absolute()),
+            'labels_directory': str(labels_dir.absolute()),
             'image_count': len(actual_images),
             'annotated_count': 0,
             'created_at': datetime.now().isoformat(),
@@ -145,10 +162,10 @@ def project_detail(request, project_id):
         project_dir = utils.PROJECTS_ROOT / project_id
 
         # 启动时完整性检查
-        integrity_warnings = utils.verify_project_integrity(project_dir)
+        labels_dir = _get_labels_dir(project_id)
+        integrity_warnings = utils.verify_project_integrity(project_dir, labels_dir)
 
         # 更新标注统计
-        labels_dir = project_dir / 'labels'
         annotated_count = 0
         if labels_dir.exists():
             for f in labels_dir.iterdir():
@@ -201,7 +218,7 @@ def image_list(request, project_id):
 
     project_dir = utils.PROJECTS_ROOT / project_id
     images_dir = project_dir / 'images'
-    labels_dir = project_dir / 'labels'
+    labels_dir = _get_labels_dir(project_id)
 
     status_filter = request.GET.get('status', 'all')
     page = int(request.GET.get('page', 1))
@@ -265,7 +282,8 @@ def image_detail(request, project_id, image_name):
     img_w, img_h = utils.get_image_size(str(image_path))
 
     # 读取已有标注
-    txt_path = project_dir / 'labels' / f"{Path(image_name).stem}.txt"
+    labels_dir = _get_labels_dir(project_id)
+    txt_path = labels_dir / f"{Path(image_name).stem}.txt"
     raw_annotations = utils.read_txt_annotations(txt_path)
 
     # 从 .meta/ 读取形状信息
@@ -366,7 +384,8 @@ def save_annotations(request, project_id, image_name):
             'cx': cx, 'cy': cy, 'w': w, 'h': h,
         })
 
-    txt_path = project_dir / 'labels' / f"{Path(image_name).stem}.txt"
+    labels_dir = _get_labels_dir(project_id)
+    txt_path = labels_dir / f"{Path(image_name).stem}.txt"
     # 原子写入 TXT
     utils.atomic_write(txt_path, lambda p: utils.write_txt_annotations(p, yolo_annotations))
 
@@ -382,7 +401,7 @@ def save_annotations(request, project_id, image_name):
     utils.atomic_write(meta_path, lambda p: utils._write_json(p, meta_data))
 
     # 更新项目注册表中的统计
-    labels_dir = project_dir / 'labels'
+    labels_dir = _get_labels_dir(project_id)
     annotated_count = 0
     if labels_dir.exists():
         for f in labels_dir.iterdir():

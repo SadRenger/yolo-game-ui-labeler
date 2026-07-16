@@ -10,6 +10,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const dir = await TauriBridge.pickDirectory();
         if (dir) document.getElementById('imageDirectory').value = dir;
     });
+    document.getElementById('btnBrowseLabels').addEventListener('click', async () => {
+        const dir = await TauriBridge.pickDirectory();
+        if (dir) document.getElementById('labelsDirectory').value = dir;
+    });
     document.getElementById('btnBrowseClass').addEventListener('click', async () => {
         const file = await TauriBridge.pickJsonFile();
         if (file) document.getElementById('classConfig').value = file;
@@ -72,6 +76,7 @@ function openNewProjectDialog() {
     document.getElementById('formError').style.display = 'none';
     document.getElementById('projectName').value = '';
     document.getElementById('imageDirectory').value = '';
+    document.getElementById('labelsDirectory').value = '';
     document.getElementById('classConfig').value = '';
 }
 
@@ -82,6 +87,7 @@ function closeDialog() {
 async function createProject() {
     const name = document.getElementById('projectName').value.trim();
     const image_directory = document.getElementById('imageDirectory').value.trim();
+    const labels_directory = document.getElementById('labelsDirectory').value.trim();
     const class_config = document.getElementById('classConfig').value.trim();
     const errorEl = document.getElementById('formError');
 
@@ -92,7 +98,7 @@ async function createProject() {
     }
 
     try {
-        const result = await API.createProject({ name, image_directory, class_config });
+        const result = await API.createProject({ name, image_directory, labels_directory, class_config });
         window.location.href = `annotate.html#${result.id}`;
     } catch (err) {
         errorEl.textContent = err.message;
