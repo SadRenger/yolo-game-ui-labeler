@@ -2,10 +2,19 @@
 const API = {
     // Tauri 环境: 通过 IPC invoke('api_request') 代理到 Django
     // 浏览器开发: Django 直接 serve 页面 → 同源 fetch
-    _isTauri: typeof window.__TAURI_INTERNALS__ !== 'undefined',
+    _isTauri: false,  // 运行时检测
 
     _getInvoke() {
-        if (this._isTauri && typeof window.__TAURI_INTERNALS__.invoke === 'function') {
+        // Tauri 2.x: invoke 在 window.__TAURI__ (withGlobalTauri: true)
+        // __TAURI_INTERNALS__ 存在但没有 invoke 方法
+        if (typeof window.__TAURI__ !== 'undefined'
+            && typeof window.__TAURI__.invoke === 'function') {
+            this._isTauri = true;
+            return window.__TAURI__.invoke.bind(window.__TAURI__);
+        }
+        if (typeof window.__TAURI_INTERNALS__ !== 'undefined'
+            && typeof window.__TAURI_INTERNALS__.invoke === 'function') {
+            this._isTauri = true;
             return window.__TAURI_INTERNALS__.invoke.bind(window.__TAURI_INTERNALS__);
         }
         return null;
@@ -46,13 +55,16 @@ const API = {
     getImageDetail(projectId, name) {
         return this.request('GET', `/api/projects/${projectId}/images/${encodeURIComponent(name)}/`);
     },
+    _getBase() {
+        // Detect Tauri by checking for __TAURI__ (injected by withGlobalTauri)
+        return (typeof window.__TAURI__ !== 'undefined')
+            ? 'http://127.0.0.1:8000' : '';
+    },
     getImageDataUrl(projectId, name) {
-        const base = this._isTauri ? 'http://127.0.0.1:8000' : '';
-        return `${base}/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
+        return `${this._getBase()}/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
     },
     getThumbnailUrl(projectId, name) {
-        const base = this._isTauri ? 'http://127.0.0.1:8000' : '';
-        return `${base}/api/projects/${projectId}/images/${encodeURIComponent(name)}/thumbnail/`;
+        return `${this._getBase()}/api/projects/${projectId}/images/${encodeURIComponent(name)}/thumbnail/`;
     },
 
     // 标注
