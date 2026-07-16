@@ -1,6 +1,9 @@
 // API 请求封装 + Tauri IPC 适配
 const API = {
-    base: '',
+    // Tauri 环境: 页面由 Tauri 本地 serve → Django 在 127.0.0.1:8000
+    // 浏览器开发: Django 直接 serve 页面 → 同源
+    base: (typeof window.__TAURI_INTERNALS__ !== 'undefined')
+          ? 'http://127.0.0.1:8000' : '',
 
     async request(method, url, body = null) {
         const opts = { method, headers: {} };

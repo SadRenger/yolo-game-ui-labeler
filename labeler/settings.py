@@ -15,6 +15,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'labeler.cors.CorsMiddleware',  # 允许 Tauri 跨域访问 API
 ]
 
 ROOT_URLCONF = 'labeler.urls'

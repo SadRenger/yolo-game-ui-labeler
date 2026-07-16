@@ -72,7 +72,7 @@ fn pick_json_file() -> Result<String, String> {
 }
 
 pub fn run() {
-    let (django_child, port) = start_django()
+    let (django_child, _port) = start_django()
         .expect("Failed to start Django server");
 
     let django = DjangoProcess(Mutex::new(Some(django_child)));
@@ -92,11 +92,11 @@ pub fn run() {
             };
             std::mem::forget(lock);
 
-            let window = app.get_webview_window("main").unwrap();
-
-            // 导航到 Django 服务器
-            let url = format!("http://127.0.0.1:{}", port);
-            let _ = window.navigate(url.parse::<tauri::Url>().unwrap());
+            // 页面由 frontendDist (static/) 本地 serve
+            // Django 作为纯 API 后端运行在 127.0.0.1:{port}
+            // 前端通过 API.base 自动检测并跨域访问 Django
+            let _window = app.get_webview_window("main").unwrap();
+            // 注意: 不使用 window.navigate() —— 否则页面离开本地域后 Tauri IPC 会丢失
 
             Ok(())
         })

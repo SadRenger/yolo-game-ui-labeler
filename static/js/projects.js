@@ -53,7 +53,7 @@ async function loadProjects() {
 }
 
 function openProject(id) {
-    window.location.href = `/annotate/${id}/`;
+    window.location.href = `annotate.html#${id}`;
 }
 
 async function deleteProject(e, id) {
@@ -93,7 +93,7 @@ async function createProject() {
 
     try {
         const result = await API.createProject({ name, image_directory, class_config });
-        window.location.href = `/annotate/${result.id}/`;
+        window.location.href = `annotate.html#${result.id}`;
     } catch (err) {
         errorEl.textContent = err.message;
         errorEl.style.display = 'block';

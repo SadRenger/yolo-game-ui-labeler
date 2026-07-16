@@ -18,11 +18,14 @@ const AppState = {
 };
 
 // 从 URL 提取项目 ID
+// Tauri 模式: annotate.html#<project_id>
+// Django 模式: /annotate/<project_id>/
+const hashMatch = window.location.hash.match(/#(.+)/);
 const pathMatch = window.location.pathname.match(/\/annotate\/([^/]+)\//);
-AppState.projectId = pathMatch ? pathMatch[1] : null;
+AppState.projectId = hashMatch ? hashMatch[1] : (pathMatch ? pathMatch[1] : null);
 
 if (!AppState.projectId) {
-    window.location.href = '/';
+    window.location.href = 'index.html';
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
