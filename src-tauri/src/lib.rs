@@ -5,11 +5,23 @@ use tauri_plugin_dialog::DialogExt;
 
 struct DjangoProcess(Mutex<Option<Child>>);
 
+fn find_python() -> std::path::PathBuf {
+    // 优先使用项目目录下的 venv Python
+    let venv_python = std::path::PathBuf::from("venv/Scripts/python.exe");
+    if venv_python.exists() {
+        return venv_python;
+    }
+    // Fallback: 系统 PATH 中的 python
+    std::path::PathBuf::from("python")
+}
+
 fn start_django() -> Option<(Child, u16)> {
     let port = portpicker::pick_unused_port().unwrap_or(8000);
     let addr = format!("127.0.0.1:{}", port);
 
-    let child = Command::new("python")
+    let python = find_python();
+
+    let child = Command::new(&python)
         .args(["manage.py", "runserver", &addr, "--noreload"])
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
