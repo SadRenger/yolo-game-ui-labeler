@@ -59,7 +59,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         Canvas.init();
     } catch (err) {
-        alert('失败: ' + err.message + '\n\n调试:\n' + dbg.join('\n'));
+        let msg = err ? (err.message || String(err)) : '未知错误';
+        alert('失败: ' + msg + '\n\n调试:\n' + dbg.join('\n'));
     }
 
     // 属性面板事件
