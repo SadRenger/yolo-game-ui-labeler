@@ -15,7 +15,7 @@ fn find_python() -> std::path::PathBuf {
 }
 
 fn start_django() -> Option<(Child, u16)> {
-    let port = portpicker::pick_unused_port().unwrap_or(8000);
+    let port: u16 = 8000;
     let addr = format!("127.0.0.1:{}", port);
 
     let python = find_python();
