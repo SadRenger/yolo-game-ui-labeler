@@ -2,5 +2,5 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 fn main() {
-    yolo_game_ui_labeler_lib::run()
+    yolo_game_ui_labeler::run()
 }

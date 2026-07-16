@@ -1,13 +1,12 @@
 use std::process::{Child, Command};
 use std::sync::Mutex;
 use tauri::Manager;
+use tauri_plugin_dialog::DialogExt;
 
 struct DjangoProcess(Mutex<Option<Child>>);
 
 fn start_django() -> Option<(Child, u16)> {
-    // 自动选择可用端口（优先 8000）
     let port = portpicker::pick_unused_port().unwrap_or(8000);
-    let port_str = port.to_string();
     let addr = format!("127.0.0.1:{}", port);
 
     let child = Command::new("python")
@@ -17,17 +16,22 @@ fn start_django() -> Option<(Child, u16)> {
         .spawn()
         .ok()?;
 
+    let pid = child.id();
+
     // 等待 Django 就绪（最多 10 秒）
     let start = std::time::Instant::now();
     loop {
         if start.elapsed().as_secs() > 10 {
-            // 超时——尝试终止进程
-            let _ = child.id().map(|id| {
-                #[cfg(windows)]
-                { std::process::Command::new("taskkill").args(["/F", "/PID", &id.to_string()]).spawn(); }
-                #[cfg(not(windows))]
-                { std::process::Command::new("kill").arg(id.to_string()).spawn(); }
-            });
+            // 超时——终止进程
+            #[cfg(windows)]
+            {
+                let _ = std::process::Command::new("taskkill")
+                    .args(["/F", "/PID", &pid.to_string()]).spawn();
+            }
+            #[cfg(not(windows))]
+            {
+                let _ = std::process::Command::new("kill").arg(pid.to_string()).spawn();
+            }
             return None;
         }
         if reqwest::blocking::get(format!("http://{}", addr)).is_ok() {
@@ -39,34 +43,34 @@ fn start_django() -> Option<(Child, u16)> {
     Some((child, port))
 }
 
-use tauri_plugin_dialog::DialogExt;
-
 #[tauri::command]
 async fn pick_image_directory(app: tauri::AppHandle) -> Result<String, String> {
-    let result = app
-        .dialog()
+    let (tx, rx) = std::sync::mpsc::channel();
+    app.dialog()
         .file()
         .set_title("选择图片目录")
-        .pick_folder();
-
-    match result {
-        Some(path) => Ok(path.to_string_lossy().to_string()),
-        None => Ok(String::new()),  // 用户取消
+        .pick_folder(move |path| {
+            let _ = tx.send(path);
+        });
+    match rx.recv() {
+        Ok(Some(path)) => Ok(path.to_string()),
+        _ => Ok(String::new()),
     }
 }
 
 #[tauri::command]
 async fn pick_json_file(app: tauri::AppHandle) -> Result<String, String> {
-    let result = app
-        .dialog()
+    let (tx, rx) = std::sync::mpsc::channel();
+    app.dialog()
         .file()
         .set_title("选择类别配置文件")
         .add_filter("JSON 文件", &["json"])
-        .pick_file();
-
-    match result {
-        Some(path) => Ok(path.to_string_lossy().to_string()),
-        None => Ok(String::new()),
+        .pick_file(move |path| {
+            let _ = tx.send(path);
+        });
+    match rx.recv() {
+        Ok(Some(path)) => Ok(path.to_string()),
+        _ => Ok(String::new()),
     }
 }
 
@@ -83,26 +87,23 @@ pub fn run() {
         .manage(django)
         .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file])
         .setup(move |app| {
-            // 单实例锁：尝试绑定固定本地端口，失败则已有实例运行
+            // 单实例锁：尝试绑定固定本地端口
             use std::net::TcpListener;
             let lock_addr = "127.0.0.1:17839";
             let lock = match TcpListener::bind(lock_addr) {
                 Ok(l) => l,
                 Err(_) => {
-                    // 端口被占用 → 已有实例运行 → 直接退出
                     std::process::exit(0);
                 }
             };
-            // 刻意泄漏 socket 以持有端口锁（进程存活期间）
-            // 进程退出时 OS 自动回收端口
             std::mem::forget(lock);
 
             let window = app.get_webview_window("main").unwrap();
 
-            // 如果是 devUrl 模式（cargo tauri dev），不重定向
-            // 否则重定向到实际端口
-            #[cfg(not(dev))]
-            {
+            // devUrl 模式下不重定向
+            if cfg!(dev) {
+                // 开发模式 — devUrl 已指向正确的地址
+            } else {
                 let url = format!("http://127.0.0.1:{}", port);
                 window.eval(&format!("window.location.href = '{}'", url)).ok();
             }
