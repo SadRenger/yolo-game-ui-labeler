@@ -1,7 +1,6 @@
 use std::process::{Child, Command};
 use std::sync::Mutex;
 use tauri::Manager;
-use tauri_plugin_dialog::DialogExt;
 
 struct DjangoProcess(Mutex<Option<Child>>);
 
@@ -56,34 +55,20 @@ fn start_django() -> Option<(Child, u16)> {
 }
 
 #[tauri::command]
-async fn pick_image_directory(app: tauri::AppHandle) -> Result<String, String> {
-    let (tx, rx) = std::sync::mpsc::channel();
-    app.dialog()
-        .file()
+fn pick_image_directory() -> Result<String, String> {
+    let path = rfd::FileDialog::new()
         .set_title("选择图片目录")
-        .pick_folder(move |path| {
-            let _ = tx.send(path);
-        });
-    match rx.recv() {
-        Ok(Some(path)) => Ok(path.to_string()),
-        _ => Ok(String::new()),
-    }
+        .pick_folder();
+    Ok(path.map(|p| p.to_string_lossy().to_string()).unwrap_or_default())
 }
 
 #[tauri::command]
-async fn pick_json_file(app: tauri::AppHandle) -> Result<String, String> {
-    let (tx, rx) = std::sync::mpsc::channel();
-    app.dialog()
-        .file()
+fn pick_json_file() -> Result<String, String> {
+    let path = rfd::FileDialog::new()
         .set_title("选择类别配置文件")
         .add_filter("JSON 文件", &["json"])
-        .pick_file(move |path| {
-            let _ = tx.send(path);
-        });
-    match rx.recv() {
-        Ok(Some(path)) => Ok(path.to_string()),
-        _ => Ok(String::new()),
-    }
+        .pick_file();
+    Ok(path.map(|p| p.to_string_lossy().to_string()).unwrap_or_default())
 }
 
 pub fn run() {
@@ -93,7 +78,6 @@ pub fn run() {
     let django = DjangoProcess(Mutex::new(Some(django_child)));
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
         .manage(django)
         .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file])
         .setup(move |app| {

@@ -3,9 +3,6 @@
   "description": "Default capability set",
   "windows": ["main"],
   "permissions": [
-    "core:default",
-    "dialog:default",
-    "dialog:allow-open",
-    "dialog:allow-save"
+    "core:default"
   ]
 }
