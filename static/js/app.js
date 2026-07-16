@@ -34,25 +34,32 @@ function _dlog(msg) {
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
-    _dlog('初始化开始, projectId=' + AppState.projectId);
+    let dbg = [];
     try {
-        _dlog('加载项目...');
+        dbg.push('projectId=' + AppState.projectId);
+        dbg.push('TAURI=' + (typeof window.__TAURI__) + ' invoke=' + (typeof (window.__TAURI__||{}).invoke));
         await loadProject();
-        _dlog('项目加载OK: ' + AppState.projectName);
-        _dlog('加载图片列表...');
+        dbg.push('项目OK: ' + AppState.projectName + ' 类别数=' + AppState.classes.length);
         await loadImageList();
-        _dlog('图片列表OK: ' + AppState.images.length + ' 张');
+        dbg.push('图片列表OK: ' + AppState.images.length + ' 张');
         if (AppState.images.length > 0) {
-            _dlog('加载第一张图片...');
-            await loadImage(0);
-            _dlog('图片加载OK');
+            const fileName = AppState.images[0].file;
+            dbg.push('准备加载: ' + fileName);
+            const detail = await API.getImageDetail(AppState.projectId, fileName);
+            dbg.push('详情OK: ' + detail.width + 'x' + detail.height);
+            const imgUrl = await API.getImageDataUrl(AppState.projectId, fileName);
+            dbg.push('图片URL前缀: ' + (imgUrl ? imgUrl.substring(0, 60) : '空'));
+            const img = new Image();
+            img.src = imgUrl;
+            await new Promise((resolve, reject) => {
+                img.onload = () => { dbg.push('图片解码OK'); resolve(); };
+                img.onerror = () => { reject(new Error('解码失败')); };
+            });
+            AppState.currentImage = img;
         }
         Canvas.init();
-        _dlog('初始化完成');
     } catch (err) {
-        _dlog('ERROR: ' + err.message);
-        console.error('初始化失败:', err);
-        alert('项目加载失败: ' + err.message);
+        alert('失败: ' + err.message + '\n\n调试:\n' + dbg.join('\n'));
     }
 
     // 属性面板事件

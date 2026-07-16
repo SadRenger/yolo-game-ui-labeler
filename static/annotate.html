@@ -7,26 +7,6 @@
     <link rel="stylesheet" href="css/app.css">
 </head>
 <body class="annotate-page">
-    <div style="position:fixed;top:0;right:0;background:red;color:white;padding:4px 8px;font:bold 14px monospace;z-index:99999;">TAURI-v2</div>
-    <div id="debugLog" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.9);color:#0f0;
-        font:11px monospace;padding:8px;z-index:99998;max-height:30vh;overflow-y:auto;
-        white-space:pre-wrap;border-top:2px solid #0f0;"></div>
-    <script>
-    // 全局调试日志，显示在页面底部
-    window._debugLog = function(msg) {
-        var el = document.getElementById('debugLog');
-        if (!el) return;
-        el.textContent += msg + '\n';
-        el.scrollTop = el.scrollHeight;
-    };
-    window._debugLog('=== 标注页已加载 ===');
-    window._debugLog('__TAURI__: ' + typeof window.__TAURI__);
-    if (window.__TAURI__) {
-        window._debugLog('__TAURI__.invoke: ' + typeof window.__TAURI__.invoke);
-    }
-    window._debugLog('__TAURI_INTERNALS__: ' + typeof window.__TAURI_INTERNALS__);
-    window._debugLog('location: ' + window.location.href);
-    </script>
     <header class="topbar" id="topbar">
         <div class="topbar-left">
             <a href="index.html" class="back-link" title="返回项目列表">← 项目列表</a>
