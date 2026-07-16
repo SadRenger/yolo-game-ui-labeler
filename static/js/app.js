@@ -57,7 +57,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
             AppState.currentImage = img;
         }
-        Canvas.init();
+        initClassManager();
+    Canvas.init();
     } catch (err) {
         let msg = err ? (err.message || String(err)) : '未知错误';
         alert('失败: ' + msg + '\n\n调试:\n' + dbg.join('\n'));
@@ -253,4 +254,95 @@ function updateStatusBar() {
         `${AppState.currentIndex + 1}/${AppState.images.length}`;
     document.getElementById('statusAnnotationCount').textContent =
         `标注: ${AppState.currentAnnotations.length}`;
+}
+
+// ── 类别管理器 ────────────────────────────────────────────
+
+let _classEditList = [];  // 编辑中的类别副本
+
+function initClassManager() {
+    document.getElementById('btnManageClasses').addEventListener('click', openClassManager);
+    document.getElementById('btnCloseClassModal').addEventListener('click', closeClassManager);
+    document.getElementById('btnAddClass').addEventListener('click', addClassItem);
+    document.getElementById('btnSaveClasses').addEventListener('click', saveClasses);
+}
+
+function openClassManager() {
+    _classEditList = AppState.classes.map(c => ({...c}));
+    renderClassList();
+    document.getElementById('classModalOverlay').style.display = 'flex';
+    document.getElementById('classFormError').style.display = 'none';
+}
+
+function closeClassManager() {
+    document.getElementById('classModalOverlay').style.display = 'none';
+}
+
+function renderClassList() {
+    const container = document.getElementById('classList');
+    if (_classEditList.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-secondary);padding:8px;text-align:center;">暂无类别，请在下方添加</div>';
+        return;
+    }
+    container.innerHTML = _classEditList.map((c, i) => `
+        <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+            <span style="display:inline-block;width:16px;height:16px;border-radius:3px;background:${c.color};flex-shrink:0;"></span>
+            <span style="font-size:12px;color:var(--text-secondary);width:30px;">#${c.id}</span>
+            <input value="${escapeHtml(c.name)}" data-index="${i}" data-field="name"
+                   style="flex:1;padding:4px 6px;background:var(--bg-dark);border:1px solid var(--border);border-radius:3px;color:var(--text-primary);font-size:13px;">
+            <input type="color" value="${c.color}" data-index="${i}" data-field="color"
+                   style="width:30px;height:26px;border:none;cursor:pointer;">
+            <button data-index="${i}" data-action="remove"
+                    style="padding:2px 6px;background:transparent;border:none;color:var(--danger);cursor:pointer;font-size:16px;">×</button>
+        </div>
+    `).join('');
+
+    // 绑定编辑事件
+    container.querySelectorAll('input[data-field]').forEach(input => {
+        input.addEventListener('change', () => {
+            const idx = parseInt(input.dataset.index);
+            const field = input.dataset.field;
+            if (field === 'color') _classEditList[idx].color = input.value;
+            else _classEditList[idx].name = input.value.trim();
+        });
+    });
+    container.querySelectorAll('button[data-action="remove"]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.dataset.index);
+            _classEditList.splice(idx, 1);
+            renderClassList();
+        });
+    });
+}
+
+function addClassItem() {
+    const nameInput = document.getElementById('newClassName');
+    const colorInput = document.getElementById('newClassColor');
+    const name = nameInput.value.trim();
+    if (!name) {
+        document.getElementById('classFormError').textContent = '请输入类别名称';
+        document.getElementById('classFormError').style.display = 'block';
+        return;
+    }
+    const newId = _classEditList.length > 0 ? Math.max(..._classEditList.map(c => c.id)) + 1 : 0;
+    _classEditList.push({ id: newId, name, color: colorInput.value });
+    nameInput.value = '';
+    // 自动切换颜色以区分
+    const colors = ['#FF4444','#44BB44','#4444FF','#FFAA00','#FF44FF','#44FFFF','#FF8888','#8888FF'];
+    colorInput.value = colors[newId % colors.length];
+    document.getElementById('classFormError').style.display = 'none';
+    renderClassList();
+}
+
+async function saveClasses() {
+    try {
+        await API.request('PUT', `/api/projects/${AppState.projectId}/classes/`,
+            { classes: _classEditList });
+        AppState.classes = _classEditList.map(c => ({...c}));
+        populateClassSelectors();
+        document.getElementById('classModalOverlay').style.display = 'none';
+    } catch (e) {
+        document.getElementById('classFormError').textContent = '保存失败: ' + (e.message || e);
+        document.getElementById('classFormError').style.display = 'block';
+    }
 }
