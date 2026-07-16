@@ -152,7 +152,7 @@ async function loadImage(index) {
     const detail = await API.getImageDetail(AppState.projectId, fileName);
 
     const img = new Image();
-    img.src = API.getImageDataUrl(AppState.projectId, fileName);
+    img.src = await API.getImageDataUrl(AppState.projectId, fileName);
     await new Promise((resolve, reject) => {
         img.onload = resolve;
         img.onerror = () => reject(new Error('图片加载失败: ' + fileName));

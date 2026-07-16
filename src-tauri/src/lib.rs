@@ -78,6 +78,41 @@ fn ping() -> String {
 }
 
 #[tauri::command]
+fn fetch_image_blob(path: String) -> Result<String, String> {
+    let url = format!("http://127.0.0.1:{}{}", DJANGO_PORT, path);
+    let response = reqwest::blocking::get(&url)
+        .map_err(|e| format!("图片请求失败: {}", e))?;
+    let bytes = response.bytes()
+        .map_err(|e| format!("读取图片失败: {}", e))?;
+    Ok(base64_encode(&bytes))
+}
+
+fn base64_encode(bytes: &[u8]) -> String {
+    // 简单 base64 编码 (无外部依赖)
+    const CHARS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+    let mut result = String::new();
+    for chunk in bytes.chunks(3) {
+        let b0 = chunk[0] as u32;
+        let b1 = if chunk.len() > 1 { chunk[1] as u32 } else { 0 };
+        let b2 = if chunk.len() > 2 { chunk[2] as u32 } else { 0 };
+        let triple = (b0 << 16) | (b1 << 8) | b2;
+        result.push(CHARS[((triple >> 18) & 0x3F) as usize] as char);
+        result.push(CHARS[((triple >> 12) & 0x3F) as usize] as char);
+        if chunk.len() > 1 {
+            result.push(CHARS[((triple >> 6) & 0x3F) as usize] as char);
+        } else {
+            result.push('=');
+        }
+        if chunk.len() > 2 {
+            result.push(CHARS[(triple & 0x3F) as usize] as char);
+        } else {
+            result.push('=');
+        }
+    }
+    result
+}
+
+#[tauri::command]
 fn api_request(method: String, path: String, body: Option<String>) -> Result<String, String> {
     let url = format!("http://127.0.0.1:{}{}", DJANGO_PORT, path);
     let client = reqwest::blocking::Client::new();
@@ -104,7 +139,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(django)
-        .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file, api_request, ping])
+        .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file, api_request, ping, fetch_image_blob])
         .setup(move |app| {
             // 单实例锁：尝试绑定固定本地端口
             use std::net::TcpListener;

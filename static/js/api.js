@@ -66,8 +66,24 @@ const API = {
         return (typeof window.__TAURI__ !== 'undefined')
             ? 'http://127.0.0.1:8000' : '';
     },
-    getImageDataUrl(projectId, name) {
-        return `${this._getBase()}/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
+    // 通过 IPC 加载图片 base64，避免混合内容问题
+    async getImageDataUrl(projectId, name) {
+        const invoke = this._getInvoke();
+        if (invoke) {
+            try {
+                const base64 = await invoke('fetch_image_blob', {
+                    path: `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`
+                });
+                const ext = name.split('.').pop().toLowerCase();
+                const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
+                return `data:${mime};base64,${base64}`;
+            } catch (e) {
+                console.error('Image load failed:', e);
+                return '';
+            }
+        }
+        // 浏览器模式: 直接 URL
+        return `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
     },
     getThumbnailUrl(projectId, name) {
         return `${this._getBase()}/api/projects/${projectId}/images/${encodeURIComponent(name)}/thumbnail/`;
