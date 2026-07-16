@@ -1,17 +1,31 @@
 // API 请求封装 + Tauri IPC 适配
 const API = {
-    // Tauri 环境: 页面由 Tauri 本地 serve → Django 在 127.0.0.1:8000
-    // 浏览器开发: Django 直接 serve 页面 → 同源
-    base: (typeof window.__TAURI_INTERNALS__ !== 'undefined')
-          ? 'http://127.0.0.1:8000' : '',
+    // Tauri 环境: 通过 IPC invoke('api_request') 代理到 Django
+    // 浏览器开发: Django 直接 serve 页面 → 同源 fetch
+    _isTauri: typeof window.__TAURI_INTERNALS__ !== 'undefined',
+
+    _getInvoke() {
+        if (this._isTauri && typeof window.__TAURI_INTERNALS__.invoke === 'function') {
+            return window.__TAURI_INTERNALS__.invoke.bind(window.__TAURI_INTERNALS__);
+        }
+        return null;
+    },
 
     async request(method, url, body = null) {
+        const invoke = this._getInvoke();
+        if (invoke) {
+            // Tauri 模式: IPC 代理 → Rust → Django（绕过跨域）
+            const data = await invoke('api_request', { method, path: url, body });
+            if (data.error) throw new Error(data.error);
+            return data;
+        }
+        // 浏览器模式: 同源 fetch
         const opts = { method, headers: {} };
         if (body) {
             opts.headers['Content-Type'] = 'application/json';
             opts.body = JSON.stringify(body);
         }
-        const response = await fetch(this.base + url, opts);
+        const response = await fetch(url, opts);
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.error || `HTTP ${response.status}`);
@@ -33,10 +47,12 @@ const API = {
         return this.request('GET', `/api/projects/${projectId}/images/${encodeURIComponent(name)}/`);
     },
     getImageDataUrl(projectId, name) {
-        return `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
+        const base = this._isTauri ? 'http://127.0.0.1:8000' : '';
+        return `${base}/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
     },
     getThumbnailUrl(projectId, name) {
-        return `/api/projects/${projectId}/images/${encodeURIComponent(name)}/thumbnail/`;
+        const base = this._isTauri ? 'http://127.0.0.1:8000' : '';
+        return `${base}/api/projects/${projectId}/images/${encodeURIComponent(name)}/thumbnail/`;
     },
 
     // 标注

@@ -1,8 +1,10 @@
 use std::process::{Child, Command};
 use std::sync::Mutex;
+use serde_json::Value;
 use tauri::Manager;
 
 struct DjangoProcess(Mutex<Option<Child>>);
+static DJANGO_PORT: u16 = 8000;
 
 fn find_python() -> std::path::PathBuf {
     // 优先使用项目目录下的 venv Python
@@ -15,7 +17,7 @@ fn find_python() -> std::path::PathBuf {
 }
 
 fn start_django() -> Option<(Child, u16)> {
-    let port: u16 = 8000;
+    let port: u16 = DJANGO_PORT;
     let addr = format!("127.0.0.1:{}", port);
 
     let python = find_python();
@@ -71,6 +73,26 @@ fn pick_json_file() -> Result<String, String> {
     Ok(path.map(|p| p.to_string_lossy().to_string()).unwrap_or_default())
 }
 
+#[tauri::command]
+fn api_request(method: String, path: String, body: Option<Value>) -> Result<Value, String> {
+    let url = format!("http://127.0.0.1:{}{}", DJANGO_PORT, path);
+    let client = reqwest::blocking::Client::new();
+    let mut builder = match method.as_str() {
+        "GET" => client.get(&url),
+        "POST" => client.post(&url).header("Content-Type", "application/json"),
+        "PUT" => client.put(&url).header("Content-Type", "application/json"),
+        "DELETE" => client.delete(&url),
+        _ => return Err(format!("Unsupported method: {}", method)),
+    };
+    if let Some(b) = body {
+        builder = builder.json(&b);
+    }
+    let response = builder.send().map_err(|e| e.to_string())?;
+    let text = response.text().map_err(|e| e.to_string())?;
+    let json: Value = serde_json::from_str(&text).map_err(|e| e.to_string())?;
+    Ok(json)
+}
+
 pub fn run() {
     let (django_child, _port) = start_django()
         .expect("Failed to start Django server");
@@ -79,7 +101,7 @@ pub fn run() {
 
     tauri::Builder::default()
         .manage(django)
-        .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file])
+        .invoke_handler(tauri::generate_handler![pick_image_directory, pick_json_file, api_request])
         .setup(move |app| {
             // 单实例锁：尝试绑定固定本地端口
             use std::net::TcpListener;
