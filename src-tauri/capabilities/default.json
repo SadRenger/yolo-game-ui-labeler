@@ -1,7 +1,10 @@
 {
   "identifier": "default",
-  "description": "Default capability set",
+  "description": "Default capability set - allows IPC from local and Django pages",
   "windows": ["main"],
+  "remote": {
+    "urls": ["http://127.0.0.1:*"]
+  },
   "permissions": [
     "core:default"
   ]
