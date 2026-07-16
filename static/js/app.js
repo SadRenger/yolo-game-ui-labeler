@@ -28,15 +28,29 @@ if (!AppState.projectId) {
     window.location.href = 'index.html';
 }
 
+function _dlog(msg) {
+    if (window._debugLog) window._debugLog(msg);
+    console.log(msg);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
+    _dlog('初始化开始, projectId=' + AppState.projectId);
     try {
+        _dlog('加载项目...');
         await loadProject();
+        _dlog('项目加载OK: ' + AppState.projectName);
+        _dlog('加载图片列表...');
         await loadImageList();
+        _dlog('图片列表OK: ' + AppState.images.length + ' 张');
         if (AppState.images.length > 0) {
+            _dlog('加载第一张图片...');
             await loadImage(0);
+            _dlog('图片加载OK');
         }
         Canvas.init();
+        _dlog('初始化完成');
     } catch (err) {
+        _dlog('ERROR: ' + err.message);
         console.error('初始化失败:', err);
         alert('项目加载失败: ' + err.message);
     }

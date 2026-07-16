@@ -22,8 +22,8 @@ const API = {
 
     async request(method, url, body = null) {
         const invoke = this._getInvoke();
+        if (window._debugLog) window._debugLog('API.' + method + ' ' + url + ' invoke=' + !!invoke);
         if (invoke) {
-            // Tauri 模式: IPC 代理 → Rust → Django（绕过跨域）
             try {
                 const bodyStr = body ? JSON.stringify(body) : null;
                 const text = await invoke('api_request', { method, path: url, body: bodyStr });
@@ -31,6 +31,7 @@ const API = {
                 if (data && data.error) throw new Error(data.error);
                 return data;
             } catch (e) {
+                if (window._debugLog) window._debugLog('  API ERR: ' + (e.message || e));
                 throw new Error('API 请求失败: ' + (e.message || e));
             }
         }
@@ -69,20 +70,23 @@ const API = {
     // 通过 IPC 加载图片 base64，避免混合内容问题
     async getImageDataUrl(projectId, name) {
         const invoke = this._getInvoke();
+        if (window._debugLog) window._debugLog('  getImageDataUrl: invoke=' + !!invoke + ' name=' + name);
         if (invoke) {
             try {
-                const base64 = await invoke('fetch_image_blob', {
-                    path: `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`
-                });
+                const path = `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
+                const base64 = await invoke('fetch_image_blob', { path: path });
+                if (window._debugLog) window._debugLog('  fetch_image_blob OK, len=' + (base64 ? base64.length : 0));
                 const ext = name.split('.').pop().toLowerCase();
                 const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
                 return `data:${mime};base64,${base64}`;
             } catch (e) {
+                if (window._debugLog) window._debugLog('  fetch_image_blob ERROR: ' + (e.message || e));
                 console.error('Image load failed:', e);
                 return '';
             }
         }
         // 浏览器模式: 直接 URL
+        if (window._debugLog) window._debugLog('  getImageDataUrl: no invoke, using direct URL');
         return `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
     },
     getThumbnailUrl(projectId, name) {
