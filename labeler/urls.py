@@ -2,7 +2,7 @@ from django.urls import path
 from django.shortcuts import render
 from . import views
 
-def index(request):
+def index(request, project_id=None):
     return render(request, 'index.html')
 
 def projects_page(request):
