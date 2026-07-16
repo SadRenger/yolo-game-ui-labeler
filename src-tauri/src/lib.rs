@@ -140,7 +140,13 @@ fn api_request(method: String, path: String, body: Option<String>) -> Result<Str
         builder = builder.body(b.clone());
     }
     let response = builder.send().map_err(|e| format!("Django 连接失败: {}", e))?;
+    let status = response.status();
     let text = response.text().map_err(|e| format!("读取响应失败: {}", e))?;
+    if !status.is_success() {
+        let preview: String = text.chars().take(200).collect();
+        return Err(format!("Django {} ({} {}): {}",
+            status.as_u16(), method, path, preview));
+    }
     Ok(text)
 }
 
