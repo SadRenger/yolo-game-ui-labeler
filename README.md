@@ -24,7 +24,7 @@
     {"id": 0, "name": "Btn_Circle",   "color": "#FF4444"},
     {"id": 1, "name": "Btn_Rect",     "color": "#FF6666"},
     {"id": 2, "name": "Icon_Circle",  "color": "#44BB44"},
-    {"id": 3, "name": "Icon_Ellipse", "color": "#66DD66"},
+    {"id": 3, "name": "Icon_Ellipse", "color": "#1a351a"},
     {"id": 4, "name": "HP_Bar",       "color": "#4444FF"},
     {"id": 5, "name": "Skill_CD",     "color": "#FFAA00"}
   ]
