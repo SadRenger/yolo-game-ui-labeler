@@ -16,28 +16,9 @@
             <select id="classSelector" class="class-selector">
                 <option value="">-- 选择类别 --</option>
             </select>
-            <button class="btn-toolbar" id="btnManageClasses" title="管理类别">🏷 类别</button>
             <button class="btn-toolbar" id="btnSave" title="Ctrl+S">💾 保存</button>
         </div>
     </header>
-
-    <!-- 类别管理对话框 -->
-    <div class="modal-overlay" id="classModalOverlay" style="display:none;">
-        <div class="modal-dialog" style="max-width:500px;">
-            <h2>管理类别</h2>
-            <div id="classList" style="max-height:300px;overflow-y:auto;margin-bottom:12px;"></div>
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-                <input type="text" id="newClassName" placeholder="类别名称 (如 Btn_Circle)" style="flex:1;padding:6px 8px;background:var(--bg-dark);border:1px solid var(--border);border-radius:4px;color:var(--text-primary);">
-                <input type="color" id="newClassColor" value="#4a9eff" style="width:36px;height:36px;border:none;cursor:pointer;">
-                <button class="btn-primary" id="btnAddClass" style="white-space:nowrap;">+ 添加</button>
-            </div>
-            <div class="form-error" id="classFormError" style="display:none;"></div>
-            <div class="form-actions">
-                <button class="btn-cancel" id="btnCloseClassModal">关闭</button>
-                <button class="btn-primary" id="btnSaveClasses">保存类别</button>
-            </div>
-        </div>
-    </div>
 
     <div class="main-area">
         <aside class="sidebar" id="sidebar">
