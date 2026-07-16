@@ -27,12 +27,6 @@
     "withGlobalTauri": true
   },
   "plugins": {
-    "dialog": null,
-    "shell": {
-      "open": true
-    },
-    "fs": {
-      "scope": ["**"]
-    }
+    "dialog": null
   }
 }
