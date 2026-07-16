@@ -53,13 +53,31 @@ const API = {
 
 // Tauri 原生对话框桥接
 const TauriBridge = {
-    isAvailable: typeof window.__TAURI__ !== 'undefined'
-                  && typeof window.__TAURI__.invoke !== 'undefined',
+    /**
+     * 获取 Tauri IPC invoke 函数
+     * Tauri 2.x 始终注入 __TAURI_INTERNALS__，withGlobalTauri 额外提供 __TAURI__
+     */
+    _getInvoke() {
+        if (typeof window.__TAURI_INTERNALS__ !== 'undefined'
+            && typeof window.__TAURI_INTERNALS__.invoke === 'function') {
+            return window.__TAURI_INTERNALS__.invoke.bind(window.__TAURI_INTERNALS__);
+        }
+        if (typeof window.__TAURI__ !== 'undefined'
+            && typeof window.__TAURI__.invoke === 'function') {
+            return window.__TAURI__.invoke.bind(window.__TAURI__);
+        }
+        return null;
+    },
+
+    isAvailable() {
+        return this._getInvoke() !== null;
+    },
 
     async pickDirectory() {
-        if (this.isAvailable) {
+        const invoke = this._getInvoke();
+        if (invoke) {
             try {
-                const result = await window.__TAURI__.invoke('pick_image_directory');
+                const result = await invoke('pick_image_directory');
                 return result || '';
             } catch (e) {
                 console.error('Tauri dialog error:', e);
@@ -69,9 +87,10 @@ const TauriBridge = {
     },
 
     async pickJsonFile() {
-        if (this.isAvailable) {
+        const invoke = this._getInvoke();
+        if (invoke) {
             try {
-                const result = await window.__TAURI__.invoke('pick_json_file');
+                const result = await invoke('pick_json_file');
                 return result || '';
             } catch (e) {
                 console.error('Tauri dialog error:', e);
