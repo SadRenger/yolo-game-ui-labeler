@@ -152,10 +152,15 @@ async function loadImage(index) {
     const detail = await API.getImageDetail(AppState.projectId, fileName);
 
     const img = new Image();
-    img.src = await API.getImageDataUrl(AppState.projectId, fileName);
+    const imgUrl = await API.getImageDataUrl(AppState.projectId, fileName);
+    if (!imgUrl) throw new Error('图片数据为空: ' + fileName);
+    img.src = imgUrl;
     await new Promise((resolve, reject) => {
         img.onload = resolve;
-        img.onerror = () => reject(new Error('图片加载失败: ' + fileName));
+        img.onerror = () => {
+            const preview = imgUrl.length > 80 ? imgUrl.substring(0, 80) + '...' : imgUrl;
+            reject(new Error('图片解码失败: ' + fileName + '\nURL: ' + preview));
+        };
     });
     AppState.currentImage = img;
 
