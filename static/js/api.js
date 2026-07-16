@@ -67,23 +67,14 @@ const API = {
     // 通过 IPC 加载图片 base64，避免混合内容问题
     async getImageDataUrl(projectId, name) {
         const invoke = this._getInvoke();
-        if (window._debugLog) window._debugLog('  getImageDataUrl: invoke=' + !!invoke + ' name=' + name);
         if (invoke) {
-            try {
-                const path = `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
-                const base64 = await invoke('fetch_image_blob', { path: path });
-                if (window._debugLog) window._debugLog('  fetch_image_blob OK, len=' + (base64 ? base64.length : 0));
-                const ext = name.split('.').pop().toLowerCase();
-                const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
-                return `data:${mime};base64,${base64}`;
-            } catch (e) {
-                if (window._debugLog) window._debugLog('  fetch_image_blob ERROR: ' + (e.message || e));
-                console.error('Image load failed:', e);
-                return '';
-            }
+            const path = `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
+            const base64 = await invoke('fetch_image_blob', { path: path });
+            const ext = name.split('.').pop().toLowerCase();
+            const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'image/png';
+            return `data:${mime};base64,${base64}`;
         }
         // 浏览器模式: 直接 URL
-        if (window._debugLog) window._debugLog('  getImageDataUrl: no invoke, using direct URL');
         return `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
     },
     getThumbnailUrl(projectId, name) {
