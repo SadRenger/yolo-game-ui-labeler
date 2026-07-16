@@ -24,9 +24,14 @@ const API = {
         const invoke = this._getInvoke();
         if (invoke) {
             // Tauri 模式: IPC 代理 → Rust → Django（绕过跨域）
-            const data = await invoke('api_request', { method, path: url, body });
-            if (data.error) throw new Error(data.error);
-            return data;
+            try {
+                const bodyStr = body ? JSON.stringify(body) : null;
+                const data = await invoke('api_request', { method, path: url, body: bodyStr });
+                if (data && data.error) throw new Error(data.error);
+                return data;
+            } catch (e) {
+                throw new Error('API 请求失败: ' + (e.message || e));
+            }
         }
         // 浏览器模式: 同源 fetch
         const opts = { method, headers: {} };

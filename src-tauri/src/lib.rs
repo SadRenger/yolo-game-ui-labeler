@@ -74,7 +74,7 @@ fn pick_json_file() -> Result<String, String> {
 }
 
 #[tauri::command]
-fn api_request(method: String, path: String, body: Option<Value>) -> Result<Value, String> {
+fn api_request(method: String, path: String, body: Option<String>) -> Result<Value, String> {
     let url = format!("http://127.0.0.1:{}{}", DJANGO_PORT, path);
     let client = reqwest::blocking::Client::new();
     let mut builder = match method.as_str() {
@@ -84,8 +84,8 @@ fn api_request(method: String, path: String, body: Option<Value>) -> Result<Valu
         "DELETE" => client.delete(&url),
         _ => return Err(format!("Unsupported method: {}", method)),
     };
-    if let Some(b) = body {
-        builder = builder.json(&b);
+    if let Some(ref b) = body {
+        builder = builder.body(b.clone());
     }
     let response = builder.send().map_err(|e| e.to_string())?;
     let text = response.text().map_err(|e| e.to_string())?;
