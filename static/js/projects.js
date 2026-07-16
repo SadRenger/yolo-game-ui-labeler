@@ -96,6 +96,11 @@ async function createProject() {
         errorEl.style.display = 'block';
         return;
     }
+    if (!class_config) {
+        errorEl.textContent = '请选择类别配置文件';
+        errorEl.style.display = 'block';
+        return;
+    }
 
     try {
         const result = await API.createProject({ name, image_directory, labels_directory, class_config });

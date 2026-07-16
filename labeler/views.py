@@ -32,13 +32,6 @@ def _get_labels_dir(project_id):
     return utils.PROJECTS_ROOT / project_id / 'labels'
 
 
-def _create_default_classes(project_dir):
-    """创建默认空类别配置。"""
-    default = {'classes': []}
-    with open(project_dir / 'classes.json', 'w', encoding='utf-8') as f:
-        json.dump(default, f, indent=2, ensure_ascii=False)
-
-
 # ── 项目管理 API ────────────────────────────────────────────
 
 @csrf_exempt
@@ -79,6 +72,15 @@ def project_list(request):
             return _json_response(
                 {'error': f'图片目录不存在: {image_directory}'}, status=400)
 
+        # 校验类别配置文件
+        if not class_config:
+            return _json_response(
+                {'error': '必须提供类别配置文件'}, status=400)
+        class_config_path = Path(class_config)
+        if not class_config_path.exists():
+            return _json_response(
+                {'error': f'类别配置文件不存在: {class_config}'}, status=400)
+
         images = utils.scan_images(img_dir)
         if not images:
             return _json_response(
@@ -90,15 +92,8 @@ def project_list(request):
         # 创建项目目录结构
         project_dir = utils.ensure_project_dir(project_id)
 
-        # 处理类别配置
-        if class_config:
-            class_config_path = Path(class_config)
-            if class_config_path.exists():
-                shutil.copy(class_config_path, project_dir / 'classes.json')
-            else:
-                _create_default_classes(project_dir)
-        else:
-            _create_default_classes(project_dir)
+        # 复制类别配置（前面已校验存在）
+        shutil.copy(class_config_path, project_dir / 'classes.json')
 
         # 复制图片到项目目录 + 生成缩略图
         images_dir = project_dir / 'images'
