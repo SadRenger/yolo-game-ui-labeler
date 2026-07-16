@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Game UI Labeler</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="projects-page">
+    <div class="projects-container">
+        <header class="projects-header">
+            <h1>YOLO Game UI Labeler</h1>
+            <p class="subtitle">游戏 UI 标注工具</p>
+        </header>
+
+        <section class="projects-list" id="projectsList">
+            <div class="loading">加载中...</div>
+        </section>
+
+        <button class="btn-primary btn-new-project" id="btnNewProject">+ 新建项目</button>
+    </div>
+
+    <!-- 新建项目对话框 -->
+    <div class="modal-overlay" id="modalOverlay" style="display:none;">
+        <div class="modal-dialog">
+            <h2>新建标注项目</h2>
+            <div class="form-group">
+                <label for="projectName">项目名称</label>
+                <input type="text" id="projectName" placeholder="例如：my_project">
+            </div>
+            <div class="form-group">
+                <label for="imageDirectory">图片目录</label>
+                <div class="input-with-browse">
+                    <input type="text" id="imageDirectory" placeholder="D:\game_screenshots">
+                    <button class="btn-browse" id="btnBrowseImage">浏览</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="classConfig">类别配置 (可选)</label>
+                <div class="input-with-browse">
+                    <input type="text" id="classConfig" placeholder="D:\classes.json">
+                    <button class="btn-browse" id="btnBrowseClass">浏览</button>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button class="btn-cancel" id="btnCancel">取消</button>
+                <button class="btn-primary" id="btnCreate">创建项目</button>
+            </div>
+            <div class="form-error" id="formError" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/projects.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+// API 请求封装 + Tauri IPC 适配
+const API = {
+    base: '',
+
+    async request(method, url, body = null) {
+        const opts = { method, headers: {} };
+        if (body) {
+            opts.headers['Content-Type'] = 'application/json';
+            opts.body = JSON.stringify(body);
+        }
+        const response = await fetch(this.base + url, opts);
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+        return data;
+    },
+
+    // 项目管理
+    listProjects()     { return this.request('GET', '/api/projects/'); },
+    createProject(data){ return this.request('POST', '/api/projects/', data); },
+    getProject(id)     { return this.request('GET', `/api/projects/${id}/`); },
+    deleteProject(id)  { return this.request('DELETE', `/api/projects/${id}/`); },
+
+    // 图片
+    getImages(projectId, params = '') {
+        return this.request('GET', `/api/projects/${projectId}/images/?${params}`);
+    },
+    getImageDetail(projectId, name) {
+        return this.request('GET', `/api/projects/${projectId}/images/${encodeURIComponent(name)}/`);
+    },
+    getImageDataUrl(projectId, name) {
+        return `/api/projects/${projectId}/images/${encodeURIComponent(name)}/data/`;
+    },
+    getThumbnailUrl(projectId, name) {
+        return `/api/projects/${projectId}/images/${encodeURIComponent(name)}/thumbnail/`;
+    },
+
+    // 标注
+    saveAnnotations(projectId, name, annotations) {
+        return this.request('PUT',
+            `/api/projects/${projectId}/images/${encodeURIComponent(name)}/annotations/`,
+            { annotations });
+    },
+
+    // 审核状态
+    toggleReviewed(projectId, name, reviewed) {
+        return this.request('PUT',
+            `/api/projects/${projectId}/images/${encodeURIComponent(name)}/reviewed/`,
+            { reviewed });
+    },
+};
+
+// Tauri 原生对话框桥接
+const TauriBridge = {
+    isAvailable: typeof window.__TAURI__ !== 'undefined'
+                  && typeof window.__TAURI__.invoke !== 'undefined',
+
+    async pickDirectory() {
+        if (this.isAvailable) {
+            try {
+                const result = await window.__TAURI__.invoke('pick_image_directory');
+                return result || '';
+            } catch (e) {
+                console.error('Tauri dialog error:', e);
+            }
+        }
+        return prompt('请输入图片目录的绝对路径:') || '';
+    },
+
+    async pickJsonFile() {
+        if (this.isAvailable) {
+            try {
+                const result = await window.__TAURI__.invoke('pick_json_file');
+                return result || '';
+            } catch (e) {
+                console.error('Tauri dialog error:', e);
+            }
+        }
+        return prompt('请输入类别配置 JSON 文件的绝对路径:') || '';
+    },
+};

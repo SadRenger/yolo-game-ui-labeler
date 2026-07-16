@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YOLO Game UI Labeler - 标注</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+</head>
+<body class="annotate-page">
+    <!-- 顶部栏 -->
+    <header class="topbar" id="topbar">
+        <div class="topbar-left">
+            <a href="/" class="back-link" title="返回项目列表">← 项目列表</a>
+            <span class="project-name" id="projectNameDisplay">加载中...</span>
+        </div>
+        <div class="topbar-right">
+            <select id="classSelector" class="class-selector">
+                <option value="">-- 选择类别 --</option>
+            </select>
+            <button class="btn-toolbar" id="btnSave" title="Ctrl+S">💾 保存</button>
+        </div>
+    </header>
+
+    <!-- 主区域 -->
+    <div class="main-area">
+        <!-- 左侧图片列表 -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-filters">
+                <button class="filter-btn active" data-filter="all">全部</button>
+                <button class="filter-btn" data-filter="reviewed">已审核</button>
+                <button class="filter-btn" data-filter="annotated">已标注</button>
+                <button class="filter-btn" data-filter="unannotated">未标注</button>
+            </div>
+            <div class="image-list" id="imageList">
+                <div class="loading">加载中...</div>
+            </div>
+        </aside>
+
+        <!-- 中央画布 -->
+        <main class="canvas-area" id="canvasArea">
+            <canvas id="mainCanvas"></canvas>
+            <div class="canvas-watermark" id="watermark">暂无图片</div>
+            <div class="zoom-indicator" id="zoomIndicator">100%</div>
+        </main>
+
+        <!-- 右侧属性面板 -->
+        <aside class="property-panel" id="propertyPanel" style="display:none;">
+            <h3>标注属性</h3>
+            <div class="prop-group">
+                <label>类别</label>
+                <select id="propClass"></select>
+            </div>
+            <div class="prop-group">
+                <label>形状</label>
+                <span id="propShape" class="prop-value"></span>
+            </div>
+            <div class="prop-group">
+                <label>中心坐标</label>
+                <span id="propCenter" class="prop-value"></span>
+            </div>
+            <div class="prop-group">
+                <label>尺寸 (宽×高)</label>
+                <span id="propSize" class="prop-value"></span>
+            </div>
+            <button class="btn-danger" id="btnDeleteAnnotation">🗑 删除标注</button>
+        </aside>
+    </div>
+
+    <!-- 底部工具栏 -->
+    <footer class="bottombar" id="bottombar">
+        <div class="toolbar-left">
+            <span class="tool-group-label">标注工具:</span>
+            <button class="tool-btn" data-tool="rect" title="矩形 (1)">▬ 矩形</button>
+            <button class="tool-btn" data-tool="square" title="正方形 (2)">◻ 正方形</button>
+            <button class="tool-btn" data-tool="ellipse" title="椭圆 (3)">◯ 椭圆</button>
+            <button class="tool-btn" data-tool="circle" title="圆形 (4)">● 圆形</button>
+            <button class="tool-btn" data-tool="select" title="选择/移动 (S)">🖱 选择</button>
+        </div>
+        <div class="toolbar-right">
+            <span class="status-item" id="statusImageIndex">-/-</span>
+            <span class="status-separator">|</span>
+            <span class="status-item" id="statusAnnotationCount">标注: 0</span>
+            <span class="status-separator">|</span>
+            <span class="status-item" id="statusZoom">100%</span>
+            <span class="status-separator">|</span>
+            <span class="status-item" id="statusCrosshair">准星: 开</span>
+        </div>
+    </footer>
+
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/annotation.js"></script>
+    <script src="/static/js/canvas.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/toolbar.js"></script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
