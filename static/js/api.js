@@ -5,17 +5,14 @@ const API = {
     _isTauri: false,  // 运行时检测
 
     _getInvoke() {
-        // Tauri 2.x: invoke 在 window.__TAURI__ (withGlobalTauri: true)
-        // __TAURI_INTERNALS__ 存在但没有 invoke 方法
-        if (typeof window.__TAURI__ !== 'undefined'
-            && typeof window.__TAURI__.invoke === 'function') {
-            this._isTauri = true;
-            return window.__TAURI__.invoke.bind(window.__TAURI__);
-        }
+        // Tauri 2.x: invoke 在 __TAURI_INTERNALS__ (始终注入) 或 __TAURI__ (withGlobalTauri)
         if (typeof window.__TAURI_INTERNALS__ !== 'undefined'
             && typeof window.__TAURI_INTERNALS__.invoke === 'function') {
-            this._isTauri = true;
             return window.__TAURI_INTERNALS__.invoke.bind(window.__TAURI_INTERNALS__);
+        }
+        if (typeof window.__TAURI__ !== 'undefined'
+            && typeof window.__TAURI__.invoke === 'function') {
+            return window.__TAURI__.invoke.bind(window.__TAURI__);
         }
         return null;
     },

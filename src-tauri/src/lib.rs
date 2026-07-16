@@ -82,8 +82,21 @@ fn fetch_image_blob(path: String) -> Result<String, String> {
     let url = format!("http://127.0.0.1:{}{}", DJANGO_PORT, path);
     let response = reqwest::blocking::get(&url)
         .map_err(|e| format!("图片请求失败: {}", e))?;
+    let status = response.status();
+    let content_type = response.headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("unknown")
+        .to_string();
     let bytes = response.bytes()
         .map_err(|e| format!("读取图片失败: {}", e))?;
+    if !status.is_success() {
+        // Django 返回了错误响应（如图片不存在）
+        let body = String::from_utf8_lossy(&bytes);
+        return Err(format!("Django {} ({}/{}): {}",
+            status.as_u16(), url, content_type,
+            if body.len() > 200 { &body[..200] } else { &body }));
+    }
     Ok(base64_encode(&bytes))
 }
 
