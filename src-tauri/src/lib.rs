@@ -110,13 +110,9 @@ pub fn run() {
 
             let window = app.get_webview_window("main").unwrap();
 
-            // devUrl 模式下不重定向
-            if cfg!(dev) {
-                // 开发模式 — devUrl 已指向正确的地址
-            } else {
-                let url = format!("http://127.0.0.1:{}", port);
-                window.eval(&format!("window.location.href = '{}'", url)).ok();
-            }
+            // 导航到 Django 服务器
+            let url = format!("http://127.0.0.1:{}", port);
+            let _ = window.navigate(url.parse::<tauri::Url>().unwrap());
 
             Ok(())
         })
