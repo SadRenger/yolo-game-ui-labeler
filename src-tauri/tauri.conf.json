@@ -40,7 +40,8 @@
       "../templates/",
       "../static/",
       "../requirements.txt",
-      "../runtime/"
+      "../runtime/",
+      "../WebView2Loader.dll"
     ],
     "windows": {
       "nsis": {
