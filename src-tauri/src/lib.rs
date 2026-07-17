@@ -5,13 +5,21 @@ use tauri::Manager;
 struct DjangoProcess(Mutex<Option<Child>>);
 static DJANGO_PORT: u16 = 8000;
 
+fn exe_dir() -> std::path::PathBuf {
+    std::env::current_exe()
+        .ok()
+        .and_then(|p| p.parent().map(|d| d.to_path_buf()))
+        .unwrap_or_default()
+}
+
 fn find_python() -> std::path::PathBuf {
-    // 1. 优先：runtime/ 内嵌 Python（打包后与 exe 同目录）
-    let embedded = std::path::PathBuf::from("runtime/python.exe");
+    let base = exe_dir();
+    // 1. 优先：runtime/ 内嵌 Python（与 exe 同目录）
+    let embedded = base.join("runtime/python.exe");
     if embedded.exists() {
         return embedded;
     }
-    // 2. 开发环境：venv Python
+    // 2. 开发环境：venv Python（相对 CWD）
     let venv_python = std::path::PathBuf::from("venv/Scripts/python.exe");
     if venv_python.exists() {
         return venv_python;
@@ -26,19 +34,18 @@ fn start_django() -> Option<(Child, u16)> {
 
     let python = find_python();
 
-    // manage.py 在 runtime/ 目录（与 python.exe 同目录）
-    let manage_py = if std::path::Path::new("runtime/python.exe").exists() {
-        "runtime/manage.py"
+    // manage.py 在 exe 同目录的 runtime/ 下
+    let manage_py = if exe_dir().join("runtime/python.exe").exists() {
+        exe_dir().join("runtime/manage.py")
     } else {
-        "manage.py"
+        std::path::PathBuf::from("manage.py")
     };
+    let manage_py_str = manage_py.to_str().unwrap_or("manage.py");
 
-    // stderr → django_error.log 用于调试
-    let err_file = std::fs::File::create("django_error.log").ok();
     let child = Command::new(&python)
-        .args([manage_py, "runserver", &addr, "--noreload"])
+        .args([manage_py_str, "runserver", &addr, "--noreload"])
         .stdout(Stdio::null())
-        .stderr(if let Some(f) = err_file { Stdio::from(f) } else { Stdio::null() })
+        .stderr(Stdio::null())
         .spawn()
         .ok()?;
 
