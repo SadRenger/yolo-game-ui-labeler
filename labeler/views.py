@@ -25,11 +25,14 @@ def _parse_body(request):
 
 
 def _get_labels_dir(project_id):
-    """获取项目的标注存放目录"""
+    """获取项目的标注存放目录，确保目录存在"""
     registry = utils.load_project_registry()
     if project_id in registry and 'labels_directory' in registry[project_id]:
-        return Path(registry[project_id]['labels_directory'])
-    return utils.PROJECTS_ROOT / project_id / 'labels'
+        labels_dir = Path(registry[project_id]['labels_directory'])
+    else:
+        labels_dir = utils.PROJECTS_ROOT / project_id / 'labels'
+    labels_dir.mkdir(parents=True, exist_ok=True)
+    return labels_dir
 
 
 # ── 项目管理 API ────────────────────────────────────────────
