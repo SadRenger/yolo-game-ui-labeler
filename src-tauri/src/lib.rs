@@ -2,31 +2,6 @@ use std::process::{Child, Command};
 use std::sync::Mutex;
 use tauri::Manager;
 
-const WEBVIEW2_DLL: &str = "WebView2Loader.dll";
-
-/// 将 WebView2Loader.dll 从资源目录复制到 exe 同目录
-fn ensure_webview2_dll() {
-    let exe_dir = std::env::current_exe()
-        .ok()
-        .and_then(|p| p.parent().map(|d| d.to_path_buf()))
-        .unwrap_or_default();
-    let target = exe_dir.join(WEBVIEW2_DLL);
-    if target.exists() {
-        return;
-    }
-    // 在资源目录或当前工作目录中查找 DLL
-    for candidate in &[
-        exe_dir.join("_resources_").join(WEBVIEW2_DLL),
-        exe_dir.join("resources").join(WEBVIEW2_DLL),
-        std::path::PathBuf::from(WEBVIEW2_DLL),
-    ] {
-        if candidate.exists() {
-            let _ = std::fs::copy(&candidate, &target);
-            break;
-        }
-    }
-}
-
 struct DjangoProcess(Mutex<Option<Child>>);
 static DJANGO_PORT: u16 = 8000;
 
@@ -181,8 +156,6 @@ fn api_request(method: String, path: String, body: Option<String>) -> Result<Str
 }
 
 pub fn run() {
-    ensure_webview2_dll();
-
     let (django_child, _port) = start_django()
         .expect("Failed to start Django server");
 
