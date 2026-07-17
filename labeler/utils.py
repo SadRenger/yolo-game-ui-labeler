@@ -150,6 +150,7 @@ def atomic_write(path, write_func):
 
     避免写入过程中进程崩溃或磁盘满导致文件损坏。
     """
+    path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.parent / f".tmp_{path.name}"
     write_func(tmp_path)
     os.replace(tmp_path, path)  # 原子替换，跨平台支持
