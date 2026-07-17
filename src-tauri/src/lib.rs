@@ -1,4 +1,4 @@
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::Manager;
 
@@ -26,10 +26,19 @@ fn start_django() -> Option<(Child, u16)> {
 
     let python = find_python();
 
+    // manage.py 在 runtime/ 目录（与 python.exe 同目录）
+    let manage_py = if std::path::Path::new("runtime/python.exe").exists() {
+        "runtime/manage.py"
+    } else {
+        "manage.py"
+    };
+
+    // stderr → django_error.log 用于调试
+    let err_file = std::fs::File::create("django_error.log").ok();
     let child = Command::new(&python)
-        .args(["manage.py", "runserver", &addr, "--noreload"])
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
+        .args([manage_py, "runserver", &addr, "--noreload"])
+        .stdout(Stdio::null())
+        .stderr(if let Some(f) = err_file { Stdio::from(f) } else { Stdio::null() })
         .spawn()
         .ok()?;
 
