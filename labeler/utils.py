@@ -148,12 +148,16 @@ def _write_json(path, data):
 def atomic_write(path, write_func):
     """原子写入：先写同目录临时文件，成功后 os.replace 原子替换。
 
-    避免写入过程中进程崩溃或磁盘满导致文件损坏。
+    如果 write_func 未创建临时文件（如空标注时 write_txt_annotations 直接返回），
+    则删除目标文件后退出，避免 os.replace 找不到源文件。
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path = path.parent / f".tmp_{path.name}"
     write_func(tmp_path)
-    os.replace(tmp_path, path)  # 原子替换，跨平台支持
+    if tmp_path.exists():
+        os.replace(tmp_path, path)
+    elif path.exists():
+        path.unlink()
 
 
 def verify_project_integrity(project_dir, labels_dir=None):
