@@ -1,35 +1,61 @@
-# Python
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-*.egg
-venv/
-.venv/
-
-# Django
-*.log
-
-# Rust / Tauri
-src-tauri/target/
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.sublime-*
 
-# OS
-.DS_Store
-Thumbs.db
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.eggs/
+dist/
+venv/
+.venv/
+env/
+*.whl
+pip-wheel-metadata/
+
+# Django
+*.log
+db.sqlite3
+*.db
+
+# Rust / Tauri
+src-tauri/target/
+target/
+.cargo/
+*.pdb
+*.ilk
+
+# Frontend
+node_modules/
 
 # Project data
 projects/
-*.db
 
-# Python embeddable runtime (build artifact)
+# Python embedded runtime (build artifact)
 runtime/
+
+# Build artifacts
+*.msi
+WebView2Loader.dll
+
+# Archives
+*.zip
+*.tar.gz
+*.7z
+
+# Env files
+.env
+.env.local
 
 # Superpowers
 .superpowers/
-WebView2Loader.dll

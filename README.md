@@ -1,36 +1,124 @@
-# YOLO Game UI Labeler
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)">
+    <img alt="YOLO Game UI Labeler" width="520" src="docs/logo.svg" onerror="this.style.display='none'">
+  </picture>
+</p>
 
-> 一个为游戏 UI 标注场景设计的桌面标注工具——开箱即用，标注结果直接用于 YOLO 模型训练。
+<p align="center">
+  <strong>为游戏 UI 标注而生 — 画完框直接训练，没有多余的步骤。</strong>
+  <br>
+  <em>A desktop labeling tool built for game UI — draw boxes, export YOLO TXT, no extra steps.</em>
+</p>
 
-**为什么用这个？** 通用标注工具（LabelImg、CVAT）功能繁多，操作流程与游戏 UI 标注场景不匹配。这个工具只做一件事：让你高效地在游戏截图上画框，导出标准 YOLO TXT 格式。
+<p align="center">
+  <a href="https://github.com/SadRenger/yolo-game-ui-labeler/releases"><img src="https://img.shields.io/github/v/release/SadRenger/yolo-game-ui-labeler?color=%234fc3f7&label=release" alt="Release"></a>
+  <a href="https://github.com/SadRenger/yolo-game-ui-labeler/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-%2358a6ff" alt="License: MIT"></a>
+  <a href="#"><img src="https://img.shields.io/badge/platform-Windows%2010%2F11%20%7C%20macOS%2011%2B-%234fc3f7" alt="Platform: Windows & macOS"></a>
+  <a href="#"><img src="https://img.shields.io/badge/desktop-Tauri%202.x-%23bc8cff" alt="Tauri 2.x"></a>
+  <a href="#"><img src="https://img.shields.io/badge/backend-Django%206.x-%2358a6ff" alt="Django 6.x"></a>
+</p>
 
----
-
-## 特性
-
-- 🖥️ **桌面原生** — 基于 Tauri，双击安装包就能用，不需要装 Python、不用开终端
-- 🎮 **游戏 UI 专属** — 四种形状（矩形/正方形/椭圆/圆形）+ 十字准星辅助线，覆盖按钮、图标、血条等常见 UI 元素的标注
-- 🔑 **全键盘操作** — 从切图、选工具、换类别到审核，全程不用碰鼠标
-- 💾 **即时自动保存** — 每次画完框立刻写入 YOLO TXT，随时可用于训练
-- 🔄 **支持断点续标** — 关了再开自动回到上次位置，标注进度不丢失
-- 📦 **轻量安装包** — 约 40 MB，内嵌完整 Python 运行时
-- 🏷️ **形状编码命名** — 类别名自带形状信息（如 `Btn_Circle`），YOLO 推理后可直接从 class name 获取形状和点击坐标
-
----
-
-## 安装
-
-从 [Releases](https://github.com/SadRenger/yolo-game-ui-labeler/releases) 下载 `YOLO_Game_UI_Labeler_1.0.0_x64-setup.msi`，双击安装。
-
-> 系统要求：Windows 10 1803+ / Windows 11 或 macOS 11+
+<br>
 
 ---
 
-## 快速开始
+## 🤔 Why? · 为什么用这个？
 
-### 1. 准备类别文件
+LabelImg 功能太多、CVAT 太重、MakeSense 要开浏览器……通用标注工具没有为**游戏 UI 标注**这一个场景做优化。
 
-在任意位置创建一个 `classes.json`：
+**YOLO Game UI Labeler** 只做一件事：让你在游戏截图上快速画框。矩形按钮、圆形图标、椭圆血条——四种形状一键切换。画完自动保存为标准 YOLO TXT 格式，打开 [YOLO Trainer](https://github.com/SadRenger/yolo-model-trainer) 就能训练。
+
+> *LabelImg is bloated, CVAT is heavy, MakeSense needs a browser. Generic tools aren't optimized for game UI labeling. This tool does one thing: draw bounding boxes on game screenshots — fast. Rectangles, circles, ellipses, squares — four shape tools at your fingertips. Auto-saves in YOLO TXT format, ready to train with YOLO Trainer.*
+
+---
+
+## ✨ Features · 核心特性
+
+<table>
+<tr>
+  <td width="50%">
+    <h4>🎮 四种标注形状</h4>
+    <p>矩形 / 正方形 / 椭圆 / 圆形 — 覆盖按钮、图标、血条、技能冷却等所有 UI 元素形态。</p>
+    <p><em>Rect · Square · Ellipse · Circle — covers buttons, icons, HP bars, skill cooldowns, and more.</em></p>
+  </td>
+  <td width="50%">
+    <h4>⌨️ 全键盘操作</h4>
+    <p>切图、选工具、换类别、审核标记 — 全程不用手离开键盘，标注效率翻倍。</p>
+    <p><em>Switch images, pick tools, change classes, mark as reviewed — all from the keyboard. Hands never leave the keys.</em></p>
+  </td>
+</tr>
+<tr>
+  <td>
+    <h4>💾 即时自动保存</h4>
+    <p>画完框的瞬间就写入 YOLO TXT 文件。断电、崩溃、手滑关闭 — 标注数据不丢失。</p>
+    <p><em>Bounding boxes are written to disk the moment you draw them. Crash, power loss, accidental close — your work is safe.</em></p>
+  </td>
+  <td>
+    <h4>🔄 断点续标</h4>
+    <p>关闭应用再打开，自动回到上次标注的位置。记录审核状态，一眼看出哪些还没标完。</p>
+    <p><em>Close and reopen — picks up right where you left off. Review status is preserved across sessions.</em></p>
+  </td>
+</tr>
+<tr>
+  <td>
+    <h4>🏷️ 形状编码命名</h4>
+    <p>类别名自带形状信息（如 <code>Btn_Circle</code>）。YOLO 推理后可直接从 class name 提取形状类型和点击坐标。</p>
+    <p><em>Shape info encoded in class names. After inference, extract shape type and click coordinates directly from the class name.</em></p>
+  </td>
+  <td>
+    <h4>🔍 十字准星辅助</h4>
+    <p>可开关的十字准星线，精确对齐 UI 元素的中心和边缘。标注精度有保障。</p>
+    <p><em>Toggleable crosshair cursor for pixel-perfect alignment with UI element centers and edges.</em></p>
+  </td>
+</tr>
+<tr>
+  <td>
+    <h4>✅ 审核工作流</h4>
+    <p>标注 → 审核 → 完成。侧边栏颜色标记（🟢已审/🟡已标/⚪未标），筛选快速定位遗漏。</p>
+    <p><em>Label → Review → Done. Color-coded sidebar with one-click filters to find what's missing.</em></p>
+  </td>
+  <td>
+    <h4>📦 轻量打包</h4>
+    <p>安装包约 40 MB，内嵌完整 Python 运行时。不需要装 Python、Django、任何依赖。</p>
+    <p><em>~40 MB installer with embedded Python runtime. No Python, Django, or dependency setup required.</em></p>
+  </td>
+</tr>
+</table>
+
+---
+
+## 📸 Screenshots · 界面预览
+
+> *Screenshots coming soon.*
+
+<p align="center">
+  <table>
+    <tr>
+      <td align="center"><b>🏠 项目管理</b><br><em>Project List</em></td>
+      <td align="center"><b>✏️ 标注工作区</b><br><em>Annotation Workspace</em></td>
+    </tr>
+  </table>
+</p>
+
+---
+
+## 🚀 Quick Start · 快速开始
+
+### 📥 安装 / Installation
+
+从 [Releases](https://github.com/SadRenger/yolo-game-ui-labeler/releases) 下载安装包，双击安装。
+
+> **系统要求 / Requirements：** Windows 10 (1803+) / Windows 11 · macOS 11+
+
+| | 最低 / Minimum | 推荐 / Recommended |
+|---|---|---|
+| 内存 / RAM | 4 GB | 8 GB+ |
+| 磁盘 / Disk | 200 MB 可用 | 500 MB+ 可用 |
+
+### 📝 3 步开始标注 / Start Labeling in 3 Steps
+
+**第 1 步：** 准备一个 `classes.json` 文件
 
 ```json
 {
@@ -45,191 +133,195 @@
 }
 ```
 
-- `id` — 从 0 开始的整数，对应 YOLO 的 class_id
-- `name` — 建议用 `{类别}_{形状}` 命名，训练后可直接从名称中提取形状信息
-- `color` — 画布上标注框的显示颜色
+> **命名建议：** 用 `{类别}_{形状}` 格式。训练后可直接从 YOLO 输出的 class name 中提取形状类型。*Use `{Category}_{Shape}` naming — extract shape info from class names after inference.*
 
-### 2. 创建项目
+**第 2 步：** 启动应用 → 点击 **"+ 新建项目"** → 填写名称、选择图片文件夹、选择 `classes.json`。
 
-启动应用 → 点击 **"+ 新建项目"** → 填写名称、选择图片文件夹、选择 `classes.json`。
+**第 3 步：** 开始标注！
 
-### 3. 开始标注
+| 操作 / Action | 按键 / Key |
+|---|---|
+| 选形状 / Pick shape | `1` `2` `3` `4` |
+| 画框 / Draw box | 在图上拖拽 / Drag on image |
+| 换类别 / Switch class | `5`–`9` |
+| 切图片 / Prev/next image | `A` / `D` |
+| 审核标记 / Toggle reviewed | `R` |
 
-| 操作 | 方式 |
-|------|------|
-| 选形状 | 按 `1` `2` `3` `4` 或点击底部工具栏 |
-| 画框 | 在图片上拖拽鼠标 |
-| 换类别 | 按 `5`-`9` 或顶部下拉框 |
-| 切图片 | 按 `A` / `D` 或点击左侧缩略图 |
-
-画完的标注自动保存在 `labels/` 目录，文件与图片同名。
+画完的标注自动保存在 `labels/` 目录 — 直接拿去训练。
 
 ---
 
-## 使用指南
+## ⌨️ Keyboard Shortcuts · 快捷键
 
-### 类别命名约定——形状编码
-
-这是本工具的核心设计：**将形状信息编码在类别名中**，YOLO 模型训练和推理时可以自然携带。
-
-```
-类别名: Btn_Circle
-         ↑     ↑
-       类别   形状
-
-模型返回: class="Btn_Circle", bbox=(0.52, 0.31, 0.09, 0.09)
-脚本解析:
-  - 形状: "Circle" — 从 class name 提取
-  - 点击坐标: (0.52, 0.31) — bbox 中心点
-```
-
-推荐命名模式：`{类别}_{形状}`，如 `Btn_Rect`、`Icon_Ellipse`、`HP_Bar`。
-
-### 标注操作
-
-**工具栏（底部）**：矩形 `1` / 正方形 `2` / 椭圆 `3` / 圆形 `4` / 选择移动 `S`
-
-**绘制**：选工具后在图片上拖拽。按住 `Shift` 可临时在正方形↔矩形、圆形↔椭圆间切换。
-
-**选中与编辑**：按 `S` 进入选择模式 → 点击标注框选中 → 拖拽移动 / `Delete` 删除。重叠框重复点击可循环切换。
-
-**属性面板**（右侧，选中框时出现）：查看/修改类别、查看位置和尺寸、删除按钮。
-
-### 画布操作
-
-| 操作 | 方式 |
-|------|------|
-| 缩放 | `Ctrl+滚轮`（以鼠标为中心） |
-| 平移 | 右键拖拽 |
-| 100% 原始大小 | 按 `0` |
-| 自适应窗口 | 双击空白区域 |
-| 十字准星 | 按 `H` 切换（默认开） |
-| 缩放范围 | 10% ~ 500% |
-
-### 审核标记
-
-标注确认无误后，按 `R` 键标记为"已审核"。侧边栏用颜色区分：
-- 🟢 已审核 — 标注完成且已确认
-- 🟡 已标注 — 有标注框，待审核
-- ⚪ 未标注 — 尚无标注
-
-顶部筛选按钮可快速只显示"未标注"或"已审核"的图片。
-
-### 快捷键速查
-
-| 键 | 功能 | | 键 | 功能 |
-|----|------|---|----|------|
+| 键 / Key | 功能 / Action | | 键 / Key | 功能 / Action |
+|---|---|---|---|---|
 | `1` `2` `3` `4` | 矩形 / 正方形 / 椭圆 / 圆形 | `S` | 选择/移动模式 |
-| `5`-`9` | 快速切换类别 1-5 | `Delete` | 删除选中框 |
+| `5`–`9` | 快速切换类别 1–5 | `Delete` | 删除选中框 |
 | `A` `←` / `D` `→` | 上一张 / 下一张 | `R` | 审核标记开关 |
 | `Ctrl+Z` / `Ctrl+Y` | 撤销 / 重做 | `H` | 十字准星开关 |
-| `Ctrl+S` | 手动保存 | `0` | 缩放 100% |
-| `Shift`（绘制中） | 临时切换正方形↔矩形 | `Ctrl+滚轮` | 缩放 |
-| 右键拖拽 | 平移画布 | 双击空白 | 自适应窗口 |
+| `Ctrl+S` | 手动保存 | `0` | 缩放至 100% |
+| `Shift`（拖拽中） | 矩形↔正方形 临时切换 | `Ctrl+滚轮` | 缩放画布 |
+| 右键拖拽 | 平移画布 | 双击空白区域 | 自适应窗口 |
 
 ---
 
-## 输出格式
-
-标注文件以 YOLO TXT 格式保存，与图片同名：
+## 📂 Output Format · 输出格式
 
 ```
-项目目录/
+你的项目目录/
 ├── images/
 │   ├── screenshot_001.png
 │   ├── screenshot_002.png
 │   └── ...
-├── labels/
-│   ├── screenshot_001.txt   ← 训练用
+├── labels/                  ← 直接用于 YOLO 训练
+│   ├── screenshot_001.txt   ← 与图片同名
 │   ├── screenshot_002.txt
 │   └── ...
 └── classes.json
 ```
 
-每行一个标注：`class_id x_center y_center width height`
+每行一个标注框（YOLO 标准格式，坐标归一化到 0~1）：
+
+```
+class_id x_center y_center width height
+```
 
 ```
 0 0.523438 0.312500 0.089063 0.045185
 2 0.122917 0.567593 0.034375 0.034537
 ```
 
-坐标全部归一化到 0~1，保留 6 位小数。`labels/` 文件夹可直接用于 YOLO 训练。
+---
+
+## 🏗️ Architecture · 系统架构
+
+```
+┌──────────────────────────────────────────┐
+│        Tauri 前端 / Frontend              │
+│  HTML5 + CSS3 + Vanilla JS               │
+│  ┌──────────┐ ┌──────────┐ ┌─────────┐  │
+│  │ Canvas   │ │ Sidebar  │ │ Toolbar │  │
+│  │ 标注画布  │ │ 图片列表  │ │ 工具栏   │  │
+│  └────┬─────┘ └────┬─────┘ └────┬────┘  │
+│       └────────────┴────────────┘        │
+│            REST API (fetch)              │
+└────────────────┬─────────────────────────┘
+                 │  HTTP localhost
+┌────────────────┴─────────────────────────┐
+│        Django 后端 / Backend              │
+│  Django 6.x + Django REST Framework      │
+│  ┌──────────┐ ┌──────────┐ ┌─────────┐  │
+│  │ Images   │ │ Labels   │ │Projects │  │
+│  │ 图片管理  │ │ 标注读写  │ │ 项目管理 │  │
+│  └──────────┘ └──────────┘ └─────────┘  │
+│         Pillow + OpenCV (图片处理)       │
+└──────────────────────────────────────────┘
+```
 
 ---
 
-## 技术栈
+## 🧰 Tech Stack · 技术栈
 
-| 层 | 技术 |
-|----|------|
-| 桌面壳 | Tauri 2.x (Rust) |
-| 后端 | Django 6.x + Django REST Framework |
-| 前端 | 原生 HTML5 + CSS3 + JavaScript（零框架） |
-| 图形渲染 | HTML5 Canvas API |
-| 图片处理 | Pillow + OpenCV-Python |
-| 打包 | Tauri Bundler → `.msi` |
+| Layer · 层 | Tech · 技术 | Notes · 说明 |
+|---|---|---|
+| 桌面壳 / Shell | **Tauri 2.x** (Rust) | WebView2 / WKWebView 渲染 |
+| 前端 / Frontend | **HTML5 + CSS3 + Vanilla JS** | Canvas API 图形渲染，零框架 |
+| 后端 / Backend | **Django 6.x + DRF** | REST API，本地 localhost |
+| 图片处理 / Image | **Pillow + OpenCV** | 图片读取、尺寸获取 |
+| 运行时 / Runtime | **嵌入式 Python** | 打包进安装包，无需用户安装 |
+| 打包 / Packaging | **Tauri Bundler → .msi** | 约 40 MB |
 
-### 项目结构
+---
+
+## 📂 Project Structure · 项目结构
 
 ```
-├── src-tauri/          # Tauri Rust 源码
-├── manage.py           # Django 入口
-├── labeler/            # Django 应用
-├── static/             # 前端静态资源
+yolo-game-ui-labeler/
+├── src-tauri/           # Tauri Rust 壳 · Tauri shell
+│   └── src/main.rs
+├── labeler/             # Django 应用 · Django app
+│   ├── views.py         # API 视图 · API views
+│   ├── models.py        # 数据模型 · data models
+│   └── urls.py          # 路由 · URL routing
+├── manage.py            # Django 入口 · entry point
+├── static/              # 前端 · frontend
 │   ├── css/app.css
 │   └── js/
-│       ├── app.js      # 主入口
-│       ├── canvas.js   # Canvas 渲染引擎
-│       ├── annotation.js # 标注逻辑
-│       ├── sidebar.js  # 图片列表
-│       ├── toolbar.js  # 底部工具栏
-│       └── projects.js # 项目管理页
-├── templates/          # HTML 模板
-├── projects/           # 用户项目数据（运行时）
-├── runtime/            # 嵌入式 Python 运行时
-└── docs/               # 设计文档
+│       ├── app.js       # 主入口 · main entry
+│       ├── canvas.js    # Canvas 渲染引擎 · rendering engine
+│       ├── annotation.js # 标注逻辑 · annotation logic
+│       ├── sidebar.js   # 图片列表 · image list
+│       ├── toolbar.js   # 底部工具栏 · bottom toolbar
+│       └── projects.js  # 项目管理 · project management
+├── templates/           # HTML 模板 · HTML templates
+├── docs/                # 设计文档 · design docs
+├── projects/            # 用户项目数据（运行时忽略）· user data (gitignored)
+├── runtime/             # 嵌入式 Python（构建产物）· embedded Python (build artifact)
+├── launcher.bat         # Windows 启动脚本 · Windows launcher
+├── requirements.txt     # Python 依赖 · Python deps
+├── README.md            # 本文件 · you are here
+└── LICENSE              # MIT
 ```
 
 ---
 
-## 开发
+## 🔧 Development · 开发
 
 ```bash
-# 克隆仓库
-git clone https://github.com/SadRenger/yolo-game-ui-labeler.git
+# 1. 克隆仓库 / Clone
+git clone git@github.com:SadRenger/yolo-game-ui-labeler.git
 cd yolo-game-ui-labeler
 
-# 安装 Python 依赖
+# 2. 安装 Python 依赖 / Install Python deps
 pip install -r requirements.txt
 
-# 启动 Django 后端
+# 3. 启动 Django 后端 / Start Django backend
 python manage.py runserver
 
-# 启动 Tauri 桌面壳（另一个终端）
+# 4. 启动 Tauri 桌面壳（另一个终端）/ Start Tauri shell (separate terminal)
 cd src-tauri
 cargo tauri dev
 ```
 
 ---
 
-## 路线图
+## 🎯 Roadmap · 路线图
 
-当前版本 **v1.0** — 标注核心功能完整可用。
-
-**v2.0 候选功能：**
-- 多边形/折线标注（YOLO OBB 格式）
-- 标注间复制粘贴（跨图片）
-- 图片预处理（亮度/对比度/伽马）
-- 多格式导出（COCO JSON、Pascal VOC XML）
-- 标注验证规则
+| 版本 / Version | 内容 / Content |
+|---|---|
+| **v1.0** ✅ | 标注核心功能 — 4 种形状、全键盘操作、自动保存、审核标记、断点续标 |
+| v2.0 🔜 | 多边形标注（OBB 格式）、跨图片复制粘贴、图片预处理、COCO/VOC 导出、标注验证规则 |
 
 ---
 
-## 协议
+## 🤝 Contributing · 参与贡献
 
-MIT — 随便用、随便改、随便商用。
+欢迎提 Issue 和 PR！详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+
+*Issues and PRs are welcome!*
 
 ---
 
-## 系列项目
+## 🔗 Related · 系列项目
 
-- [YOLO Model Trainer](https://github.com/SadRenger/yolo-model-trainer) — 图形化 YOLO 模型训练工具。标注完数据？用这个一键训练。
+| 项目 / Project | 说明 / Description |
+|---|---|
+| **YOLO Game UI Labeler** ← 你在这里 · *you are here* | 🏷️ 标注工具 — 标完数据？一键训练 |
+| [**YOLO Trainer**](https://github.com/SadRenger/yolo-model-trainer) | 🚀 训练工具 — 图形化 YOLO 训练，标注完直接训练 |
+
+---
+
+## 📄 License · 协议
+
+MIT © YOLO Game UI Labeler Contributors — 随便用、随便改、随便商用。*Use, modify, and distribute freely.*
+
+---
+
+<p align="center">
+  <br>
+  <strong>⭐ 如果这个项目对你有用，给个 Star 支持一下！</strong>
+  <br>
+  <em>If you find this useful, a star would be appreciated!</em>
+  <br><br>
+  <a href="https://github.com/SadRenger/yolo-game-ui-labeler/stargazers"><img src="https://img.shields.io/github/stars/SadRenger/yolo-game-ui-labeler?style=social" alt="Stars"></a>
+</p>
