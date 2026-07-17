@@ -39,7 +39,8 @@
       "../labeler/",
       "../templates/",
       "../static/",
-      "../requirements.txt"
+      "../requirements.txt",
+      "../runtime/"
     ],
     "windows": {
       "nsis": {

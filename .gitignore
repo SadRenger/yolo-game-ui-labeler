@@ -27,5 +27,8 @@ Thumbs.db
 projects/
 *.db
 
+# Python embeddable runtime (build artifact)
+runtime/
+
 # Superpowers
 .superpowers/

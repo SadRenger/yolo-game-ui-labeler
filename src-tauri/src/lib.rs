@@ -6,12 +6,17 @@ struct DjangoProcess(Mutex<Option<Child>>);
 static DJANGO_PORT: u16 = 8000;
 
 fn find_python() -> std::path::PathBuf {
-    // 优先使用项目目录下的 venv Python
+    // 1. 优先：runtime/ 内嵌 Python（打包后与 exe 同目录）
+    let embedded = std::path::PathBuf::from("runtime/python.exe");
+    if embedded.exists() {
+        return embedded;
+    }
+    // 2. 开发环境：venv Python
     let venv_python = std::path::PathBuf::from("venv/Scripts/python.exe");
     if venv_python.exists() {
         return venv_python;
     }
-    // Fallback: 系统 PATH 中的 python
+    // 3. Fallback: 系统 PATH 中的 python
     std::path::PathBuf::from("python")
 }
 
