@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             AppState.currentImage = img;
         }
         Canvas.init();
+        if (AppState.currentImage) Canvas.zoomToFit();
     } catch (err) {
         let msg = err ? (err.message || String(err)) : '未知错误';
         alert('失败: ' + msg + '\n\n调试:\n' + dbg.join('\n'));
@@ -197,6 +198,9 @@ async function loadImage(index) {
         );
     }
 
+    Canvas.zoomToFit();
+    Canvas.render();
+    updateStatusBar();
     document.dispatchEvent(new CustomEvent('image:loaded'));
 }
 
