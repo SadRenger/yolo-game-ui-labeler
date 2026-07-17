@@ -359,63 +359,67 @@ def save_annotations(request, project_id, image_name):
     if request.method != 'PUT':
         return _json_response({'error': 'Method not allowed'}, status=405)
 
-    registry = utils.load_project_registry()
-    if project_id not in registry:
-        return _json_response({'error': '项目不存在'}, status=404)
+    import traceback
+    try:
+        registry = utils.load_project_registry()
+        if project_id not in registry:
+            return _json_response({'error': '项目不存在'}, status=404)
 
-    project_dir = utils.PROJECTS_ROOT / project_id
-    image_path = project_dir / 'images' / image_name
-    if not image_path.exists():
-        return _json_response({'error': '图片不存在'}, status=404)
+        project_dir = utils.PROJECTS_ROOT / project_id
+        image_path = project_dir / 'images' / image_name
+        if not image_path.exists():
+            return _json_response({'error': '图片不存在'}, status=404)
 
-    body = _parse_body(request)
-    annotations_raw = body.get('annotations', [])
-    img_w, img_h = utils.get_image_size(str(image_path))
+        body = _parse_body(request)
+        annotations_raw = body.get('annotations', [])
+        img_w, img_h = utils.get_image_size(str(image_path))
 
-    # 转换为 YOLO 归一化格式并写入 TXT
-    yolo_annotations = []
-    for ann in annotations_raw:
-        cx, cy, w, h = utils.pixel_to_yolo(
-            ann['x1'], ann['y1'], ann['x2'], ann['y2'], img_w, img_h)
-        yolo_annotations.append({
-            'class_id': ann['class_id'],
-            'cx': cx, 'cy': cy, 'w': w, 'h': h,
-        })
+        # 转换为 YOLO 归一化格式并写入 TXT
+        yolo_annotations = []
+        for ann in annotations_raw:
+            cx, cy, w, h = utils.pixel_to_yolo(
+                ann['x1'], ann['y1'], ann['x2'], ann['y2'], img_w, img_h)
+            yolo_annotations.append({
+                'class_id': ann['class_id'],
+                'cx': cx, 'cy': cy, 'w': w, 'h': h,
+            })
 
-    labels_dir = _get_labels_dir(project_id)
-    txt_path = labels_dir / f"{Path(image_name).stem}.txt"
-    # 原子写入 TXT
-    utils.atomic_write(txt_path, lambda p: utils.write_txt_annotations(p, yolo_annotations))
+        labels_dir = _get_labels_dir(project_id)
+        txt_path = labels_dir / f"{Path(image_name).stem}.txt"
+        utils.atomic_write(txt_path, lambda p: utils.write_txt_annotations(p, yolo_annotations))
 
-    # 保存形状元数据到 .meta/
-    meta_dir = project_dir / '.meta'
-    meta_path = meta_dir / f"{Path(image_name).stem}.meta.json"
-    meta_data = []
-    for ann in annotations_raw:
-        meta_data.append({
-            'class_id': ann['class_id'],
-            'shape': ann.get('shape', 'rect'),
-        })
-    utils.atomic_write(meta_path, lambda p: utils._write_json(p, meta_data))
+        meta_dir = project_dir / '.meta'
+        meta_path = meta_dir / f"{Path(image_name).stem}.meta.json"
+        meta_data = []
+        for ann in annotations_raw:
+            meta_data.append({
+                'class_id': ann['class_id'],
+                'shape': ann.get('shape', 'rect'),
+            })
+        utils.atomic_write(meta_path, lambda p: utils._write_json(p, meta_data))
 
-    # 更新项目注册表中的统计
-    labels_dir = _get_labels_dir(project_id)
-    annotated_count = 0
-    if labels_dir.exists():
-        for f in labels_dir.iterdir():
-            if f.suffix == '.txt' and f.stat().st_size > 0:
-                annotated_count += 1
-    registry[project_id]['annotated_count'] = annotated_count
-    utils.save_project_registry(registry)
+        # 更新项目注册表中的统计
+        labels_dir = _get_labels_dir(project_id)
+        annotated_count = 0
+        if labels_dir.exists():
+            for f in labels_dir.iterdir():
+                if f.suffix == '.txt' and f.stat().st_size > 0:
+                    annotated_count += 1
+        registry[project_id]['annotated_count'] = annotated_count
+        utils.save_project_registry(registry)
 
-    # 如果标注列表为空，清理对应的 TXT 和 meta 文件
-    if not annotations_raw:
-        if txt_path.exists():
-            txt_path.unlink()
-        if meta_path.exists():
-            meta_path.unlink()
+        if not annotations_raw:
+            if txt_path.exists():
+                txt_path.unlink()
+            if meta_path.exists():
+                meta_path.unlink()
 
-    return _json_response({'success': True, 'saved_count': len(yolo_annotations)})
+        return _json_response({'success': True, 'saved_count': len(yolo_annotations)})
+    except Exception as e:
+        return _json_response({
+            'error': f'{type(e).__name__}: {str(e)}',
+            'traceback': traceback.format_exc(),
+        }, status=500)
 
 
 @csrf_exempt
