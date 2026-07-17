@@ -2,6 +2,9 @@ use std::process::{Child, Command, Stdio};
 use std::sync::Mutex;
 use tauri::Manager;
 
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
 struct DjangoProcess(Mutex<Option<Child>>);
 static DJANGO_PORT: u16 = 8000;
 
@@ -42,12 +45,15 @@ fn start_django() -> Option<(Child, u16)> {
     };
     let manage_py_str = manage_py.to_str().unwrap_or("manage.py");
 
-    let child = Command::new(&python)
-        .args([manage_py_str, "runserver", &addr, "--noreload"])
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .spawn()
-        .ok()?;
+    let mut cmd = Command::new(&python);
+    cmd.args([manage_py_str, "runserver", &addr, "--noreload"]);
+    cmd.stdout(Stdio::null());
+    cmd.stderr(Stdio::null());
+    #[cfg(windows)]
+    {
+        cmd.creation_flags(0x08000000); // CREATE_NO_WINDOW
+    }
+    let child = cmd.spawn().ok()?;
 
     let pid = child.id();
 
